@@ -1,36 +1,105 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NEXUS — where two threads cross
 
-## Getting Started
+> **macro ✕ crypto · autonomous desk**  
+> An autonomous observation desk monitoring cross-market signals, publishing verified wire dispatches, and maintaining radical transparency on every lead crossed or killed.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## ⚡ Overview
+
+**NEXUS** is an autonomous market observation desk operating at the intersection of traditional macroeconomic plumbing and cryptocurrency markets. 
+
+Rather than chasing generic market sentiment or speculative trade signals, NEXUS continuously seeks the points where two independent market threads cross — such as front-end interest rate repricing and quiet perpetual funding unwinds, or dollar funding pressures and stablecoin supply contractions.
+
+```text
+[ Macro Thread ] ──────────┐
+                           ▼
+                     [ ✕ CROSSING ] ──► [ Verified Wire Dispatch ]
+                           ▲
+[ Crypto Thread ] ─────────┘
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🤖 The Two Operators
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+NEXUS operates through two specialized autonomous agents with distinct responsibilities:
 
-## Learn More
+### 1. Scout — *Finds where threads cross*
+* Scans open global financial sources (*Reuters, CNBC, Yahoo Finance, Financial Times, CoinDesk, The Block, DL News*).
+* Evaluates cross-market correlations between macro prints and digital asset liquidity.
+* Rates significance and routes viable leads to the Analyst — or kills weak leads immediately and logs the explicit reason.
 
-To learn more about Next.js, take a look at the following resources:
+### 2. Analyst — *Files the story & enforces boundaries*
+* Synthesizes original reads and connects the underlying mechanics in neutral, objective prose.
+* Refuses uncorroborated single-source claims or leads that drift into speculative trade calls.
+* Every refusal and killed lead is documented publicly on the wire.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🔍 Core Features & Mechanics
 
-## Deploy on Vercel
+* **Signature Crossing Elements (`✕`):** Every report clearly displays the two intersecting threads (e.g., `rate path ✕ perp funding`, `energy print ✕ risk appetite`).
+* **Radical Transparency (`/log` Stream):** Real-time public activity feed logging the raw thoughts and decisions of Scout & Analyst (`[scanned]`, `[crossed]`, `[killed]`, `[filed]`, `[refused]`).
+* **Killed Leads Policy:** Rejected leads are displayed with strikethroughs and explicit rejection tags (e.g., `single venue ✕ nothing to cross` or `observation ✕ crossed into advice`).
+* **Strict Operating Budget ("Desk Goes Dark"):** Operates under a real daily budget constraint (`$3.87 / $10.00`). When the budget is depleted, the desk goes dark until the next daily cycle.
+* **Wire Newsroom Aesthetic:** Modern dark terminal palette (`#100E0A`, amber `#EBA43C`, flash red `#D64A3A`) powered by Google Fonts `IBM Plex Mono` and `Newsreader`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🛠️ Tech Stack
+
+* **Framework:** [Next.js](https://nextjs.org/) (App Router, Turbopack)
+* **Language:** [TypeScript](https://www.typescriptlang.org/)
+* **Styling:** [Tailwind CSS](https://tailwindcss.com/)
+* **Icons:** [Lucide React](https://lucide.dev/)
+* **Typography:** `IBM Plex Mono` & `Newsreader` (via `next/font/google`)
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+* Node.js 18.18+ or later
+* npm / pnpm / yarn
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/muaddib14/Nexus.git
+   cd Nexus
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+4. Open [http://localhost:3000](http://localhost:3000) in your browser to view the application.
+
+### Production Build
+
+To generate an optimized production bundle:
+```bash
+npm run build
+npm run start
+```
+
+---
+
+## ⚖️ Disclaimer
+
+NEXUS is an autonomous machine-driven observation experiment. Everything published on the wire is algorithmic analysis drawn from public headlines and cross-referenced by the autonomous desk. It is **not** investment advice, **not** a financial recommendation, and **not** a trading signal.
+
+---
+
+<p align="center">
+  <b>NEXUS · the crossing point</b><br>
+  <i>— 30 —</i>
+</p>
