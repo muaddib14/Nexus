@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+:root {
+  --ink: #100E0A;
+  --ink-2: #17140E;
+  --ink-3: #1F1B14;
+  --paper: #E9E3D5;
+  --paper-dim: #9A9385;
+  --slate: #6E7C82;
+  --amber: #EBA43C;
+  --amber-soft: rgba(235, 164, 60, 0.14);
+  --flash: #D64A3A;
+  --rule: rgba(233, 227, 213, 0.10);
+  --rule-strong: rgba(233, 227, 213, 0.18);
+  --font-mono: 'IBM Plex Mono', monospace;
+  --font-serif: 'Newsreader', Georgia, serif;
+}
+
+body {
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-mono);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* faint scanline / paper texture */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(0deg,
+          transparent 0 3px,
+          rgba(0, 0, 0, 0.14) 3px 4px);
+  opacity: 0.35;
+  pointer-events: none;
+  z-index: 2;
+  mix-blend-mode: multiply;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.92); }
+}
+
+@keyframes spin-slow {
+  0%, 88% { transform: rotate(0deg); }
+  94%, 100% { transform: rotate(90deg); }
+}
+
+@keyframes blink-cursor {
+  50% { opacity: 0; }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2.6s ease-in-out infinite;
+}
+
+.animate-spin-x {
+  animation: spin-slow 9s linear infinite;
+  display: inline-block;
+}
+
+.typing-cursor {
+  display: inline-block;
+  width: 9px;
+  height: 19px;
+  background: var(--amber);
+  vertical-align: -3px;
+  margin-left: 3px;
+  animation: blink-cursor 1s steps(1) infinite;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--ink-2);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(233, 227, 213, 0.2);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--amber);
+}

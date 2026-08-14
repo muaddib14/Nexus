@@ -1,0 +1,176 @@
+"use client";
+
+import React, { useState } from "react";
+import { Terminal, Search, Filter } from "lucide-react";
+
+interface LogEntry {
+  id: string;
+  time: string;
+  tag: "scanned" | "crossed" | "filed" | "killed" | "refused" | "kept" | "thought";
+  operator: "scout" | "analyst";
+  summary: string;
+  detail?: string;
+}
+
+const mockLogs: LogEntry[] = [
+  {
+    id: "log-1",
+    time: "14:42:56",
+    tag: "scanned",
+    operator: "scout",
+    summary: "Scanned Reuters, CNBC, CoinDesk RSS feeds for short-dated dollar liquidity prints.",
+  },
+  {
+    id: "log-2",
+    time: "14:43:10",
+    tag: "crossed",
+    operator: "scout",
+    summary: "Cross-referenced front-end SOFR futures drift against aggregate stablecoin mint/burn data.",
+    detail: "Link significance rated 0.81. Routing lead #104 to Analyst.",
+  },
+  {
+    id: "log-3",
+    time: "14:44:02",
+    tag: "thought",
+    operator: "analyst",
+    summary: "Received lead #104. Sourcing verified across 3 independent feeds (Reuters, CNBC, The Block).",
+  },
+  {
+    id: "log-4",
+    time: "14:45:18",
+    tag: "filed",
+    operator: "analyst",
+    summary: "Filed Bulletin #104: 'Dollar funding tightens as stablecoin supply slips in the same window'.",
+  },
+  {
+    id: "log-5",
+    time: "14:31:00",
+    tag: "refused",
+    operator: "analyst",
+    summary: "REFUSED Lead #102: Single-exchange token price surge.",
+    detail: "Reason: Single venue data with zero corroborating sources. Refused to file unverified speculation.",
+  },
+  {
+    id: "log-6",
+    time: "14:15:22",
+    tag: "killed",
+    operator: "analyst",
+    summary: "KILLED Lead #101: Overnight directional trade recommendation.",
+    detail: "Reason: Tipped from objective observation into trade advice. Outside desk remit under Howey safety rules.",
+  },
+  {
+    id: "log-7",
+    time: "13:58:44",
+    tag: "kept",
+    operator: "scout",
+    summary: "Logged macro calendar event: US CPI print scheduled 13:30 UTC tomorrow. Monitoring range.",
+  },
+];
+
+export default function LogStreamSection() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTag, setSelectedTag] = useState<string>("all");
+
+  const filteredLogs = mockLogs.filter((log) => {
+    const matchesTag = selectedTag === "all" || log.tag === selectedTag;
+    const matchesSearch =
+      log.summary.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (log.detail && log.detail.toLowerCase().includes(searchQuery.toLowerCase()));
+    return matchesTag && matchesSearch;
+  });
+
+  const getTagColor = (tag: string) => {
+    switch (tag) {
+      case "filed":
+        return "bg-emerald-950/60 text-emerald-400 border-emerald-700/50";
+      case "crossed":
+        return "bg-amber-950/60 text-[#EBA43C] border-amber-700/50";
+      case "killed":
+      case "refused":
+        return "bg-rose-950/60 text-rose-400 border-rose-700/50";
+      case "scanned":
+        return "bg-sky-950/60 text-sky-400 border-sky-700/50";
+      default:
+        return "bg-zinc-900 text-zinc-400 border-zinc-700/50";
+    }
+  };
+
+  return (
+    <section className="py-8 bg-[#17140E] border border-[rgba(233,227,213,0.18)] p-5 sm:p-6 shadow-2xl my-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[rgba(233,227,213,0.1)] font-mono">
+        <div className="flex items-center gap-2.5">
+          <Terminal className="w-5 h-5 text-[#EBA43C]" />
+          <div>
+            <h2 className="font-bold text-sm tracking-[0.2em] uppercase text-[#E9E3D5]">
+              Autonomous Stream (/log)
+            </h2>
+            <p className="text-xs text-[#9A9385]">
+              Real-time thought stream & decisions of Scout & Analyst
+            </p>
+          </div>
+        </div>
+
+        {/* Search & Tag Filter */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-[#6E7C82]" />
+            <input
+              type="text"
+              placeholder="Search logs..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="bg-[#100E0A] border border-[rgba(233,227,213,0.18)] rounded pl-8 pr-3 py-1 text-xs text-[#E9E3D5] placeholder-[#6E7C82] focus:outline-none focus:border-[#EBA43C]"
+            />
+          </div>
+
+          <div className="flex items-center gap-1 text-[10px]">
+            <Filter className="w-3 h-3 text-[#9A9385] mr-1" />
+            {["all", "crossed", "filed", "refused", "killed", "scanned"].map((tag) => (
+              <button
+                key={tag}
+                onClick={() => setSelectedTag(tag)}
+                className={`px-2 py-0.5 uppercase border transition-all ${
+                  selectedTag === tag
+                    ? "border-[#EBA43C] text-[#EBA43C] bg-[rgba(235,164,60,0.1)] font-bold"
+                    : "border-[rgba(233,227,213,0.1)] text-[#6E7C82] hover:text-[#E9E3D5]"
+                }`}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Log Feed List */}
+      <div className="mt-4 font-mono text-xs divide-y divide-[rgba(233,227,213,0.08)] max-h-[460px] overflow-y-auto pr-1">
+        {filteredLogs.length === 0 ? (
+          <div className="py-8 text-center text-[#6E7C82] italic">No matching logs found.</div>
+        ) : (
+          filteredLogs.map((log) => (
+            <div key={log.id} className="py-3 flex flex-col sm:flex-row gap-2 sm:gap-4 items-start hover:bg-[#100E0A]/40 px-2 rounded transition-colors">
+              <div className="flex items-center gap-2 shrink-0 text-[10px] text-[#6E7C82]">
+                <time>{log.time}</time>
+                <span className="uppercase text-[#9A9385] font-semibold">[{log.operator}]</span>
+              </div>
+
+              <div className="space-y-1 flex-1">
+                <div className="flex items-start gap-2 flex-wrap">
+                  <span className={`px-1.5 py-0.5 text-[9.5px] uppercase font-bold border rounded-sm ${getTagColor(log.tag)}`}>
+                    {log.tag}
+                  </span>
+                  <span className="text-[#E9E3D5] leading-relaxed">{log.summary}</span>
+                </div>
+                {log.detail && (
+                  <p className="text-[11px] text-[#9A9385] italic pl-2 border-l border-[rgba(233,227,213,0.18)]">
+                    {log.detail}
+                  </p>
+                )}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </section>
+  );
+}
