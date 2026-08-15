@@ -2,9 +2,10 @@
 
 import React, { useState } from "react";
 
-interface DispatchItem {
+export interface DispatchItem {
   id: string;
-  stamp: "flash" | "bulletin" | "urgent" | "routine" | "killed";
+  leadId: string;
+  stamp: "flash" | "bulletin" | "urgent" | "routine" | "killed" | "refused";
   time: string;
   title: string;
   content: string;
@@ -12,13 +13,14 @@ interface DispatchItem {
   threadB: string;
   sources: string[];
   confidence: string;
-  isKilled?: boolean;
-  killReason?: string;
+  rejectedBy?: "scout" | "analyst";
+  rejectionReason?: string;
 }
 
-const dispatches: DispatchItem[] = [
+export const dispatches: DispatchItem[] = [
   {
     id: "disp-1",
+    leadId: "#104",
     stamp: "flash",
     time: "02:47 UTC",
     title: "A rate-path repricing and a quiet unwind in perp funding are pointing the same direction",
@@ -30,6 +32,7 @@ const dispatches: DispatchItem[] = [
   },
   {
     id: "disp-2",
+    leadId: "#102",
     stamp: "killed",
     time: "02:31 UTC",
     title: "Single-exchange token rally cited as market-wide signal",
@@ -38,11 +41,12 @@ const dispatches: DispatchItem[] = [
     threadB: "nothing to cross",
     sources: ["1 source", "uncorroborated"],
     confidence: "conf 0.34",
-    isKilled: true,
-    killReason: "killed by analyst:",
+    rejectedBy: "scout",
+    rejectionReason: "killed by scout:",
   },
   {
     id: "disp-3",
+    leadId: "#103",
     stamp: "urgent",
     time: "01:58 UTC",
     title: "Energy print lands soft; the read-through to risk appetite is smaller than the headline suggests",
@@ -54,19 +58,21 @@ const dispatches: DispatchItem[] = [
   },
   {
     id: "disp-4",
-    stamp: "killed",
+    leadId: "#101",
+    stamp: "refused",
     time: "01:22 UTC",
     title: "Analyst declined: lead read as a trade call, not an observation",
-    content: "The framing tipped from 'here's what's happening' into 'here's what to do about it.' Outside the desk's remit. Rewritten as a neutral note or not filed at all — this time, not filed.",
+    content: "The framing tipped from 'here's what's happening' into 'here's what to do about it.' Outside desk remit — observation only, not advice. Rewritten as a neutral note or not filed at all — this time, not filed.",
     threadA: "observation",
     threadB: "crossed into advice",
     sources: ["flagged: advice-adjacent"],
     confidence: "conf 0.55",
-    isKilled: true,
-    killReason: "killed by analyst:",
+    rejectedBy: "analyst",
+    rejectionReason: "refused by analyst:",
   },
   {
     id: "disp-5",
+    leadId: "#098",
     stamp: "routine",
     time: "00:49 UTC",
     title: "Overnight session recap: what moved, what didn't, and what the desk is watching next",
@@ -83,7 +89,6 @@ export default function WireFeed() {
 
   const filteredDispatches = dispatches.filter((d) => {
     if (filter === "all") return true;
-    if (filter === "killed") return d.isKilled;
     return d.stamp === filter;
   });
 
@@ -93,13 +98,13 @@ export default function WireFeed() {
         <div>
           <h2 className="font-bold text-sm tracking-[0.24em] uppercase text-[#E9E3D5]">The Crossing Feed</h2>
           <p className="text-xs text-[#9A9385] tracking-wider mt-1">
-            Every thread the desk crossed, killed, or passed on — shown in full transparency
+            Every thread the desk crossed, killed, or refused — shown in full transparency
           </p>
         </div>
 
-        {/* Filter Badges */}
+        {/* Filter Badges with separate killed and refused */}
         <div className="flex items-center gap-1.5 flex-wrap text-[10px] tracking-wider">
-          {["all", "flash", "urgent", "routine", "killed"].map((type) => (
+          {["all", "flash", "urgent", "routine", "killed", "refused"].map((type) => (
             <button
               key={type}
               onClick={() => setFilter(type)}
@@ -116,70 +121,79 @@ export default function WireFeed() {
       </div>
 
       <div className="divide-y divide-[rgba(233,227,213,0.1)]">
-        {filteredDispatches.map((item) => (
-          <article
-            key={item.id}
-            className={`grid grid-cols-1 sm:grid-cols-[96px_1fr] gap-4 py-5 px-1 transition-colors hover:bg-[#17140E]/60 ${
-              item.isKilled ? "opacity-90" : ""
-            }`}
-          >
-            {/* Left Margin Stamp & Time */}
-            <div className="flex sm:flex-col items-baseline sm:items-start gap-2 pt-0.5 font-mono">
-              <span
-                className={`text-[9px] font-bold tracking-[0.18em] px-2 py-0.5 uppercase border ${
-                  item.stamp === "flash"
-                    ? "text-[#D64A3A] border-[#D64A3A] bg-[rgba(214,74,58,0.08)]"
-                    : item.stamp === "urgent"
-                    ? "text-[#E9E3D5] border-[#E9E3D5]"
-                    : item.stamp === "killed"
-                    ? "text-[#D64A3A] border-[#D64A3A] border-dashed"
-                    : "text-[#6E7C82] border-[#6E7C82]"
-                }`}
-              >
-                {item.stamp}
-              </span>
-              <span className="text-[10px] text-[#6E7C82] tracking-wider">{item.time}</span>
-            </div>
-
-            {/* Main Article Body */}
-            <div className="space-y-2">
-              <h3
-                className={`font-serif font-normal text-xl leading-snug tracking-normal ${
-                  item.isKilled ? "line-through decoration-[#D64A3A] text-[#6E7C82]" : "text-[#E9E3D5]"
-                }`}
-              >
-                {item.title}
-              </h3>
-
-              <p
-                className={`font-serif text-[15px] leading-relaxed max-w-[62ch] ${
-                  item.isKilled ? "italic text-[#6E7C82]" : "text-[#9A9385]"
-                }`}
-              >
-                {item.isKilled && (
-                  <span className="text-[#D64A3A] not-italic font-mono font-medium mr-1.5">
-                    {item.killReason}
+        {filteredDispatches.map((item) => {
+          const isKilledOrRefused = item.stamp === "killed" || item.stamp === "refused";
+          return (
+            <article
+              key={item.id}
+              id={`lead-${item.leadId.replace("#", "")}`}
+              className={`grid grid-cols-1 sm:grid-cols-[108px_1fr] gap-4 py-5 px-1 transition-colors hover:bg-[#17140E]/60 ${
+                isKilledOrRefused ? "opacity-90" : ""
+              }`}
+            >
+              {/* Left Margin Stamp, Time & Lead ID */}
+              <div className="flex sm:flex-col items-baseline sm:items-start gap-1.5 pt-0.5 font-mono">
+                <div className="flex items-center gap-1.5">
+                  <span
+                    className={`text-[9px] font-bold tracking-[0.18em] px-2 py-0.5 uppercase border ${
+                      item.stamp === "flash"
+                        ? "text-[#D64A3A] border-[#D64A3A] bg-[rgba(214,74,58,0.08)]"
+                        : item.stamp === "urgent"
+                        ? "text-[#E9E3D5] border-[#E9E3D5]"
+                        : item.stamp === "killed"
+                        ? "text-[#D64A3A] border-[#D64A3A] border-dashed"
+                        : item.stamp === "refused"
+                        ? "text-[#D64A3A] border-[#D64A3A] bg-[rgba(214,74,58,0.06)]"
+                        : "text-[#6E7C82] border-[#6E7C82]"
+                    }`}
+                  >
+                    {item.stamp}
                   </span>
-                )}
-                {item.content}
-              </p>
-
-              {/* Crossing Badge */}
-              <div className="inline-flex items-center gap-2 text-[10.5px] uppercase tracking-wider text-[#6E7C82] font-mono pt-1">
-                <span className="text-[#9A9385]">{item.threadA}</span>
-                <span className="text-[#EBA43C] font-bold text-xs">✕</span>
-                <span className="text-[#9A9385]">{item.threadB}</span>
+                  <span className="text-[10px] font-mono text-[#EBA43C] font-semibold">{item.leadId}</span>
+                </div>
+                <span className="text-[10px] text-[#6E7C82] tracking-wider">{item.time}</span>
               </div>
 
-              {/* Meta information */}
-              <div className="pt-2 font-mono text-[10px] text-[#6E7C82] tracking-wider flex items-center gap-3 flex-wrap">
-                <span>{item.sources.join(" · ")}</span>
-                <span>{item.confidence}</span>
-                {!item.isKilled && <span className="text-[#9A9385] font-semibold tracking-widest">— 30 —</span>}
+              {/* Main Article Body */}
+              <div className="space-y-2">
+                <h3
+                  className={`font-serif font-normal text-xl leading-snug tracking-normal ${
+                    isKilledOrRefused ? "line-through decoration-[#D64A3A] text-[#6E7C82]" : "text-[#E9E3D5]"
+                  }`}
+                >
+                  {item.title}
+                </h3>
+
+                <p
+                  className={`font-serif text-[15px] leading-relaxed max-w-[62ch] ${
+                    isKilledOrRefused ? "italic text-[#6E7C82]" : "text-[#9A9385]"
+                  }`}
+                >
+                  {isKilledOrRefused && (
+                    <span className="text-[#D64A3A] not-italic font-mono font-medium mr-1.5">
+                      {item.rejectionReason}
+                    </span>
+                  )}
+                  {item.content}
+                </p>
+
+                {/* Crossing Badge */}
+                <div className="inline-flex items-center gap-2 text-[10.5px] uppercase tracking-wider text-[#6E7C82] font-mono pt-1">
+                  <span className="text-[#9A9385]">{item.threadA}</span>
+                  <span className="text-[#EBA43C] font-bold text-xs">✕</span>
+                  <span className="text-[#9A9385]">{item.threadB}</span>
+                </div>
+
+                {/* Meta information */}
+                <div className="pt-2 font-mono text-[10px] text-[#6E7C82] tracking-wider flex items-center gap-3 flex-wrap">
+                  <span>{item.sources.join(" · ")}</span>
+                  <span>{item.confidence}</span>
+                  {!isKilledOrRefused && <span className="text-[#9A9385] font-semibold tracking-widest">— 30 —</span>}
+                </div>
               </div>
-            </div>
-          </article>
-        ))}
+            </article>
+          );
+        })}
       </div>
     </section>
   );

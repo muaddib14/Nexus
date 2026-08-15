@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Masthead from "@/components/Masthead";
 import HeroFiling from "@/components/HeroFiling";
+import StdoutTerminal from "@/components/StdoutTerminal";
 import WireFeed from "@/components/WireFeed";
 import LogStreamSection from "@/components/LogStreamSection";
 import OperatorsSection from "@/components/OperatorsSection";
@@ -21,6 +22,7 @@ export default function Home() {
         {activeTab === "wire" ? (
           <>
             <HeroFiling />
+            <StdoutTerminal />
             <WireFeed />
             <LogStreamSection />
             <OperatorsSection />
@@ -28,6 +30,7 @@ export default function Home() {
         ) : (
           <>
             <LogStreamSection />
+            <StdoutTerminal />
             <WireFeed />
             <OperatorsSection />
           </>
