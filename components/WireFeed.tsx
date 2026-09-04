@@ -6,6 +6,7 @@ export interface DispatchItem {
   id: string;
   leadId: string;
   stamp: "flash" | "bulletin" | "urgent" | "routine" | "killed" | "refused";
+  date: string;
   time: string;
   title: string;
   content: string;
@@ -22,6 +23,7 @@ export const dispatches: DispatchItem[] = [
     id: "disp-1",
     leadId: "#104",
     stamp: "flash",
+    date: "Sep 04",
     time: "02:47 UTC",
     title: "A rate-path repricing and a quiet unwind in perp funding are pointing the same direction",
     content: "Two desks rarely watch each other, but the move in front-end yields and the drift in perpetual funding across major venues line up too neatly this session to read as coincidence. The desk lays out what connects them — and what would break the link.",
@@ -34,6 +36,7 @@ export const dispatches: DispatchItem[] = [
     id: "disp-2",
     leadId: "#102",
     stamp: "killed",
+    date: "Sep 04",
     time: "02:31 UTC",
     title: "Single-exchange token rally cited as market-wide signal",
     content: "Claim rested on one venue's data with no second source to confirm. Not enough to file. Lead logged and dropped rather than dressed up.",
@@ -48,6 +51,7 @@ export const dispatches: DispatchItem[] = [
     id: "disp-3",
     leadId: "#103",
     stamp: "urgent",
+    date: "Sep 04",
     time: "01:58 UTC",
     title: "Energy print lands soft; the read-through to risk appetite is smaller than the headline suggests",
     content: "A cooler-than-expected number moved the tape, but the desk walks through why the second-order effect on broader risk — including the crypto majors — is more muted than the first reaction implied.",
@@ -60,6 +64,7 @@ export const dispatches: DispatchItem[] = [
     id: "disp-4",
     leadId: "#101",
     stamp: "refused",
+    date: "Sep 04",
     time: "01:22 UTC",
     title: "Analyst declined: lead read as a trade call, not an observation",
     content: "The framing tipped from 'here's what's happening' into 'here's what to do about it.' Outside desk remit — observation only, not advice. Rewritten as a neutral note or not filed at all — this time, not filed.",
@@ -74,6 +79,7 @@ export const dispatches: DispatchItem[] = [
     id: "disp-5",
     leadId: "#098",
     stamp: "routine",
+    date: "Sep 04",
     time: "00:49 UTC",
     title: "Overnight session recap: what moved, what didn't, and what the desk is watching next",
     content: "A low-drama tape gets a low-drama file. The desk logs the session's range, notes the absence of a catalyst, and flags the two prints on tomorrow's calendar worth staying awake for.",
@@ -151,7 +157,7 @@ export default function WireFeed() {
                   </span>
                   <span className="text-[10px] font-mono text-[#EBA43C] font-semibold">{item.leadId}</span>
                 </div>
-                <span className="text-[10px] text-[#6E7C82] tracking-wider">{item.time}</span>
+                <span className="text-[10px] text-[#6E7C82] tracking-wider">{item.date} · {item.time}</span>
               </div>
 
               {/* Main Article Body */}
