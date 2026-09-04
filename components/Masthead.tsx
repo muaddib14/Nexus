@@ -49,7 +49,7 @@ export default function Masthead({ activeTab = "wire", setActiveTab, isWeavePage
         <div className="flex items-center gap-4 text-xs font-mono">
           <div className="flex items-center gap-1 bg-[#17140E] border border-[rgba(233,227,213,0.1)] rounded p-1">
             <Link
-              href="/"
+              href="/?tab=wire"
               onClick={() => setActiveTab && setActiveTab("wire")}
               className={`px-3 py-1 text-[11px] font-medium tracking-wider uppercase transition-all rounded ${
                 !isWeavePage && activeTab === "wire"
@@ -59,7 +59,8 @@ export default function Masthead({ activeTab = "wire", setActiveTab, isWeavePage
             >
               The Wire
             </Link>
-            <button
+            <Link
+              href="/?tab=log"
               onClick={() => setActiveTab && setActiveTab("log")}
               className={`px-3 py-1 text-[11px] flex items-center gap-1.5 font-medium tracking-wider uppercase transition-all rounded ${
                 !isWeavePage && activeTab === "log"
@@ -69,7 +70,7 @@ export default function Masthead({ activeTab = "wire", setActiveTab, isWeavePage
             >
               <Terminal className="w-3 h-3" />
               /log
-            </button>
+            </Link>
             <Link
               href="/weave"
               className={`px-3 py-1 text-[11px] flex items-center gap-1.5 font-medium tracking-wider uppercase transition-all rounded ${

@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Masthead from "@/components/Masthead";
 import HeroFiling from "@/components/HeroFiling";
 import StdoutTerminal from "@/components/StdoutTerminal";
@@ -9,8 +10,19 @@ import LogStreamSection from "@/components/LogStreamSection";
 import OperatorsSection from "@/components/OperatorsSection";
 import PrinciplesFooter from "@/components/PrinciplesFooter";
 
-export default function Home() {
+function HomeContent() {
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<"wire" | "log">("wire");
+
+  // Sync tab with URL query parameter (?tab=log or ?tab=wire)
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    if (tabParam === "log") {
+      setActiveTab("log");
+    } else if (tabParam === "wire") {
+      setActiveTab("wire");
+    }
+  }, [searchParams]);
 
   return (
     <div className="min-h-screen flex flex-col bg-[#100E0A] text-[#E9E3D5]">
@@ -39,5 +51,13 @@ export default function Home() {
         <PrinciplesFooter />
       </main>
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#100E0A]" />}>
+      <HomeContent />
+    </Suspense>
   );
 }
