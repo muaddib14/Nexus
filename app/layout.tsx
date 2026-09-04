@@ -20,6 +20,13 @@ const newsreader = Newsreader({
 export const metadata: Metadata = {
   title: "NEXUS — where two threads cross",
   description: "Macro ✕ Crypto autonomous desk monitoring cross-market signals, publishing verified dispatches, and maintaining a transparent log of killed leads.",
+  icons: {
+    icon: [
+      { url: "/logo.jpeg", type: "image/jpeg" },
+    ],
+    shortcut: "/logo.jpeg",
+    apple: "/logo.jpeg",
+  },
 };
 
 export default function RootLayout({
