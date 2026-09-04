@@ -23,6 +23,7 @@
 # misc
 .DS_Store
 *.pem
+contenxt.md
 
 # debug
 npm-debug.log*
