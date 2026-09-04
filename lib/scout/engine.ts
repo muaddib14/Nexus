@@ -1,6 +1,7 @@
 import { fetchAllFeeds, FeedItem } from "./rss";
 import { SCOUT_SYSTEM_PROMPT } from "./prompts";
 import { query, isDbConfigured } from "@/lib/db";
+import { generateAutoWeave } from "@/lib/analyst/weaves";
 
 export interface CycleResult {
   cycleId: number;
@@ -233,6 +234,15 @@ export async function runScoutCycle(): Promise<CycleResult> {
        VALUES ($1, $2, 'system', '·', $3, 'dim', NULL);`,
       [getUtcTime(), cycleId, `cycle ${cycleId} complete · ${aiOutput.decision === "CROSS" ? "1 filed" : "0 filed"} · 1 dropped`]
     );
+
+    // Auto-synthesize Weave longform essay periodically (e.g. every 2-3 cycles)
+    if (cycleId % 2 === 0) {
+      try {
+        await generateAutoWeave();
+      } catch (err) {
+        console.error("[AutoWeave Hook Error]", err);
+      }
+    }
   }
 
   const durationMs = Date.now() - startTime;
