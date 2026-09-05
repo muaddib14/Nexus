@@ -1,6 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
+import { usePolling } from "@/lib/hooks/usePolling";
+
+// Dispatches only change when the Scout cron fires (~every 30 min) — no point polling faster
+const DISPATCHES_POLL_MS = 5 * 60_000;
 
 export interface DispatchItem {
   id: string;
@@ -102,28 +106,19 @@ export default function WireFeed() {
   const [filter, setFilter] = useState<string>("all");
   const [items, setItems] = useState<DispatchItem[]>(dispatches);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadDispatches() {
-      try {
-        const res = await fetch("/api/dispatches");
-        const json = await res.json();
-        if (!cancelled && Array.isArray(json.data) && json.data.length > 0) {
-          setItems(json.data);
-        }
-      } catch (error) {
-        console.error("[WireFeed] failed to load dispatches", error);
+  const loadDispatches = useCallback(async () => {
+    try {
+      const res = await fetch("/api/dispatches");
+      const json = await res.json();
+      if (Array.isArray(json.data) && json.data.length > 0) {
+        setItems(json.data);
       }
+    } catch (error) {
+      console.error("[WireFeed] failed to load dispatches", error);
     }
-
-    loadDispatches();
-    const interval = setInterval(loadDispatches, 60_000);
-    return () => {
-      cancelled = true;
-      clearInterval(interval);
-    };
   }, []);
+
+  usePolling(loadDispatches, DISPATCHES_POLL_MS);
 
   const filteredDispatches = items.filter((d) => {
     if (filter === "all") return true;

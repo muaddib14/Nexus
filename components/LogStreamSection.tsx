@@ -1,7 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import { Terminal, Search, Filter } from "lucide-react";
+import { usePolling } from "@/lib/hooks/usePolling";
+
+// Log lines only change when the Scout cron fires (~every 30 min) — no point polling faster
+const LOGS_POLL_MS = 3 * 60_000;
 
 interface LogEntry {
   id: string;
@@ -107,29 +111,20 @@ export default function LogStreamSection() {
   const [selectedTag, setSelectedTag] = useState<string>("all");
   const [logs, setLogs] = useState<LogEntry[]>(mockLogs);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadLogs() {
-      try {
-        const res = await fetch("/api/stdout");
-        const json = await res.json();
-        if (!cancelled && Array.isArray(json.data) && json.data.length > 0) {
-          const mapped = (json.data as RawStdoutRow[]).map(mapStdoutRow).reverse();
-          setLogs(mapped);
-        }
-      } catch (error) {
-        console.error("[LogStreamSection] failed to load logs", error);
+  const loadLogs = useCallback(async () => {
+    try {
+      const res = await fetch("/api/stdout");
+      const json = await res.json();
+      if (Array.isArray(json.data) && json.data.length > 0) {
+        const mapped = (json.data as RawStdoutRow[]).map(mapStdoutRow).reverse();
+        setLogs(mapped);
       }
+    } catch (error) {
+      console.error("[LogStreamSection] failed to load logs", error);
     }
-
-    loadLogs();
-    const interval = setInterval(loadLogs, 30_000);
-    return () => {
-      cancelled = true;
-      clearInterval(interval);
-    };
   }, []);
+
+  usePolling(loadLogs, LOGS_POLL_MS);
 
   const filteredLogs = logs.filter((log) => {
     const matchesTag = selectedTag === "all" || log.tag === selectedTag;

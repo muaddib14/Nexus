@@ -1,8 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Terminal, BookOpen, Radio } from "lucide-react";
+import { usePolling } from "@/lib/hooks/usePolling";
+
+// Vitals only change when the Scout cron fires (~every 30 min) — no point polling faster
+const VITALS_POLL_MS = 5 * 60_000;
 
 interface MastheadProps {
   activeTab?: "wire" | "log";
@@ -35,28 +39,19 @@ export default function Masthead({ activeTab = "wire", setActiveTab, isWeavePage
   const [shiftDuration, setShiftDuration] = useState<string>("00:00:00");
   const [vitals, setVitals] = useState<Vitals>(fallbackVitals);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadVitals() {
-      try {
-        const res = await fetch("/api/vitals");
-        const json = await res.json();
-        if (!cancelled && json.data) {
-          setVitals(json.data);
-        }
-      } catch (error) {
-        console.error("[Masthead] failed to load vitals", error);
+  const loadVitals = useCallback(async () => {
+    try {
+      const res = await fetch("/api/vitals");
+      const json = await res.json();
+      if (json.data) {
+        setVitals(json.data);
       }
+    } catch (error) {
+      console.error("[Masthead] failed to load vitals", error);
     }
-
-    loadVitals();
-    const interval = setInterval(loadVitals, 60_000);
-    return () => {
-      cancelled = true;
-      clearInterval(interval);
-    };
   }, []);
+
+  usePolling(loadVitals, VITALS_POLL_MS);
 
   useEffect(() => {
     const shiftStart = Date.now() - (3 * 3600 + 14 * 60 + 22) * 1000;

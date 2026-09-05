@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { usePolling } from "@/lib/hooks/usePolling";
 
 interface StdoutLine {
   id: string;
@@ -16,7 +17,9 @@ interface StdoutLine {
 
 // External cron trigger cadence documented for NEXUS (cron-job.org / GitHub Actions)
 const CRON_INTERVAL_MS = 30 * 60 * 1000;
-const POLL_INTERVAL_MS = 15_000;
+// Data only changes when the cron fires, but this is the "live terminal" —
+// poll a bit faster than vitals/dispatches for a livelier feel, still paused when tab is hidden
+const POLL_INTERVAL_MS = 2 * 60_000;
 const BUDGET_LIMIT = 10.0;
 
 export default function StdoutTerminal() {
@@ -30,32 +33,21 @@ export default function StdoutTerminal() {
 
   const pad = (n: number) => String(n).padStart(2, "0");
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadStdout() {
-      try {
-        const res = await fetch("/api/stdout");
-        const json = await res.json();
-        if (!cancelled) {
-          if (Array.isArray(json.data)) {
-            setLines(json.data);
-          }
-          setConnected(json.source === "neon");
-          lastPolledAtRef.current = Date.now();
-        }
-      } catch (error) {
-        console.error("[StdoutTerminal] failed to load stdout", error);
+  const loadStdout = useCallback(async () => {
+    try {
+      const res = await fetch("/api/stdout");
+      const json = await res.json();
+      if (Array.isArray(json.data)) {
+        setLines(json.data);
       }
+      setConnected(json.source === "neon");
+      lastPolledAtRef.current = Date.now();
+    } catch (error) {
+      console.error("[StdoutTerminal] failed to load stdout", error);
     }
-
-    loadStdout();
-    const interval = setInterval(loadStdout, POLL_INTERVAL_MS);
-    return () => {
-      cancelled = true;
-      clearInterval(interval);
-    };
   }, []);
+
+  usePolling(loadStdout, POLL_INTERVAL_MS);
 
   useEffect(() => {
     if (scrollRef.current) {
