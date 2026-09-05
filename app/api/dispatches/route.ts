@@ -12,11 +12,12 @@ export async function GET() {
 
   try {
     const rows = await query(`
-      SELECT 
+      SELECT
         id,
         lead_id as "leadId",
         stamp,
         time_utc as "time",
+        created_at as "createdAt",
         title,
         content,
         thread_a as "threadA",

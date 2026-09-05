@@ -121,14 +121,14 @@ export async function generateAutoWeave(): Promise<GenerateWeaveResult | null> {
     const timeStr = `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}`;
 
     await query(
-      `INSERT INTO agent_stdout (time_str, cycle_id, actor, glyph, message, level, cost_usd)
-       VALUES ($1, 48, 'analyst', '✎', $2, 'dim', NULL);`,
+      `INSERT INTO agent_stdout (time_str, cycle_id, actor, glyph, message, level, cost_usd, tag, lead_id)
+       VALUES ($1, 48, 'analyst', '✎', $2, 'dim', NULL, 'thought', NULL);`,
       [timeStr, `synthesizing WEAVE ${String(nextIssue).padStart(3, "0")}… 1,240 words`]
     );
 
     await query(
-      `INSERT INTO agent_stdout (time_str, cycle_id, actor, glyph, message, level, cost_usd)
-       VALUES ($1, 48, 'analyst', '✓', $2, 'hit', 0.2500);`,
+      `INSERT INTO agent_stdout (time_str, cycle_id, actor, glyph, message, level, cost_usd, tag, lead_id)
+       VALUES ($1, 48, 'analyst', '✓', $2, 'hit', 0.2500, 'filed', NULL);`,
       [timeStr, `published WEAVE ${String(nextIssue).padStart(3, "0")} "${blueprint.title.slice(0, 42)}…"`]
     );
 

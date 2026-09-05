@@ -2,145 +2,58 @@
 
 import React, { useState, useEffect, useRef } from "react";
 
-interface LogLine {
+interface StdoutLine {
   id: string;
   time: string;
+  createdAt?: string;
+  cycleId: number;
   actor: "scout" | "analyst" | "system";
-  msg: string;
+  glyph: string | null;
+  message: string;
   cls: "ok" | "dim" | "hit" | "kill" | "err";
+  cost: number | null;
 }
 
-export default function StdoutTerminal() {
-  const [lines, setLines] = useState<LogLine[]>([
-    {
-      id: "seed-1",
-      time: "02:46:20",
-      actor: "system",
-      msg: "boot ok · sources 7 · budget $10.00/day",
-      cls: "dim",
-    },
-    {
-      id: "seed-2",
-      time: "02:46:21",
-      actor: "system",
-      msg: "cycle 40 complete · 0 filed · 3 dropped",
-      cls: "dim",
-    },
-  ]);
+// External cron trigger cadence documented for NEXUS (cron-job.org / GitHub Actions)
+const CRON_INTERVAL_MS = 30 * 60 * 1000;
+const POLL_INTERVAL_MS = 15_000;
+const BUDGET_LIMIT = 10.0;
 
-  const [state, setState] = useState<"scanning" | "filing" | "idle">("scanning");
-  const [isIdle, setIsIdle] = useState<boolean>(false);
-  const [spend, setSpend] = useState<number>(3.8712);
-  const [countdown, setCountdown] = useState<string>("00:45");
-  const [cycleNum, setCycleNum] = useState<number>(41);
+export default function StdoutTerminal() {
+  const [lines, setLines] = useState<StdoutLine[]>([]);
+  const [connected, setConnected] = useState<boolean>(false);
+  const [lastPolledAgo, setLastPolledAgo] = useState<number>(0);
+  const [countdown, setCountdown] = useState<string>("--:--");
 
   const scrollRef = useRef<HTMLDivElement>(null);
-  const nextCycleTimeRef = useRef<number>(0);
+  const lastPolledAtRef = useRef<number>(0);
 
   const pad = (n: number) => String(n).padStart(2, "0");
-  const getUtcClock = () => {
-    const d = new Date();
-    return `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}`;
-  };
 
   useEffect(() => {
-    const cycleData: Array<{
-      actor: "scout" | "analyst" | "system";
-      msg: string;
-      cls: "ok" | "dim" | "hit" | "kill" | "err";
-      delay: number;
-      cost?: number;
-    }> = [
-      { actor: "scout", msg: "▸ GET reuters.com/markets/rss          200  41 items", cls: "ok", delay: 700 },
-      { actor: "scout", msg: "▸ GET cnbc.com/id/100003114/device/rss  200  28 items", cls: "ok", delay: 600 },
-      { actor: "scout", msg: "▸ GET coindesk.com/arc/outboundfeeds    200  33 items", cls: "ok", delay: 650 },
-      { actor: "scout", msg: "▸ GET theblock.co/rss.xml               429  rate limited", cls: "err", delay: 500 },
-      { actor: "scout", msg: "  retry in 8s (1/3)", cls: "dim", delay: 900 },
-      { actor: "scout", msg: "▸ GET theblock.co/rss.xml               200  19 items", cls: "ok", delay: 700 },
-      { actor: "scout", msg: "· dedupe → 63 unique headlines", cls: "dim", delay: 800 },
-      { actor: "scout", msg: "· clustering by theme… 11 clusters", cls: "dim", delay: 1100 },
-      { actor: "scout", msg: "⟡ candidate  dollar funding ✕ stablecoin supply  sig 0.81", cls: "hit", delay: 900 },
-      { actor: "scout", msg: "✕ dropped   single-venue rally ✕ nothing to cross   sig 0.34", cls: "kill", delay: 700 },
-      { actor: "scout", msg: "✕ dropped   equity open ✕ no crypto thread          sig 0.29", cls: "kill", delay: 700 },
-      { actor: "scout", msg: "→ route lead #104 → analyst", cls: "hit", delay: 900 },
-      { actor: "system", msg: "tokens in 8,412 · out 190 · $0.019", cls: "dim", delay: 600, cost: 0.019 },
-      { actor: "analyst", msg: "· received #104 · verifying sourcing", cls: "dim", delay: 1000 },
-      { actor: "analyst", msg: "· 3/3 sources independent — ok to file", cls: "ok", delay: 900 },
-      { actor: "analyst", msg: "✎ drafting… 118 words", cls: "dim", delay: 1400 },
-      { actor: "analyst", msg: "✎ drafting… 297 words", cls: "dim", delay: 1300 },
-      { actor: "analyst", msg: '✓ filed #104 "Dollar funding tightens as stablecoin…"', cls: "hit", delay: 800 },
-      { actor: "system", msg: "tokens in 3,980 · out 612 · $0.031", cls: "dim", delay: 700, cost: 0.031 },
-      { actor: "system", msg: "cycle 41 complete · 1 filed · 2 dropped", cls: "dim", delay: 900 },
-    ];
+    let cancelled = false;
 
-    let stepIndex = 0;
-    let timer: NodeJS.Timeout;
-
-    const pushLine = (
-      actor: "scout" | "analyst" | "system",
-      msg: string,
-      cls: "ok" | "dim" | "hit" | "kill" | "err"
-    ) => {
-      setLines((prev) => {
-        const newLine: LogLine = {
-          id: `line-${Date.now()}-${Math.random()}`,
-          time: getUtcClock(),
-          actor,
-          msg,
-          cls,
-        };
-        const updated = [...prev, newLine];
-        return updated.length > 60 ? updated.slice(updated.length - 60) : updated;
-      });
-    };
-
-    const runStep = () => {
-      if (stepIndex >= cycleData.length) {
-        // Enter honest idle state
-        pushLine("system", "idle · sleeping until next cycle", "dim");
-        setIsIdle(true);
-        setState("idle");
-        nextCycleTimeRef.current = Date.now() + 45000;
-
-        timer = setTimeout(() => {
-          setIsIdle(false);
-          setState("scanning");
-          setCycleNum((c) => c + 1);
-          pushLine("system", "wake · cycle 42 start", "dim");
-          stepIndex = 0;
-          timer = setTimeout(runStep, 700);
-        }, 45000);
-        return;
+    async function loadStdout() {
+      try {
+        const res = await fetch("/api/stdout");
+        const json = await res.json();
+        if (!cancelled) {
+          if (Array.isArray(json.data)) {
+            setLines(json.data);
+          }
+          setConnected(json.source === "neon");
+          lastPolledAtRef.current = Date.now();
+        }
+      } catch (error) {
+        console.error("[StdoutTerminal] failed to load stdout", error);
       }
+    }
 
-      const item = cycleData[stepIndex];
-      if (item.actor === "analyst" && item.msg.includes("drafting")) {
-        setState("filing");
-      } else if (item.actor === "scout") {
-        setState("scanning");
-      }
-
-      pushLine(item.actor, item.msg, item.cls);
-      if (item.cost) {
-        setSpend((s) => s + item.cost!);
-      }
-
-      stepIndex++;
-      timer = setTimeout(runStep, item.delay);
-    };
-
-    timer = setTimeout(runStep, 1200);
-
-    // Heartbeat timer for countdown during idle state
-    const cdInterval = setInterval(() => {
-      if (!nextCycleTimeRef.current) return;
-      const left = Math.max(0, Math.floor((nextCycleTimeRef.current - Date.now()) / 1000));
-      setCountdown(`${pad(Math.floor(left / 60))}:${pad(left % 60)}`);
-    }, 500);
-
+    loadStdout();
+    const interval = setInterval(loadStdout, POLL_INTERVAL_MS);
     return () => {
-      clearTimeout(timer);
-      clearInterval(cdInterval);
+      cancelled = true;
+      clearInterval(interval);
     };
   }, []);
 
@@ -149,6 +62,40 @@ export default function StdoutTerminal() {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [lines]);
+
+  // Heartbeat: freshness indicator + estimated next-cycle countdown based on the
+  // real 30-minute external cron cadence and the last row's actual timestamp.
+  useEffect(() => {
+    const tick = () => {
+      if (lastPolledAtRef.current) {
+        setLastPolledAgo(Math.floor((Date.now() - lastPolledAtRef.current) / 1000));
+      }
+
+      const lastLine = lines[lines.length - 1];
+      if (lastLine?.createdAt) {
+        const lastRunAt = new Date(lastLine.createdAt).getTime();
+        const nextRunAt = lastRunAt + CRON_INTERVAL_MS;
+        const left = Math.max(0, Math.floor((nextRunAt - Date.now()) / 1000));
+        setCountdown(left > 0 ? `${pad(Math.floor(left / 60))}:${pad(left % 60)}` : "any moment");
+      }
+    };
+
+    tick();
+    const heartbeat = setInterval(tick, 1000);
+    return () => clearInterval(heartbeat);
+  }, [lines]);
+
+  const lastLine = lines[lines.length - 1];
+  const cycleNum = lastLine?.cycleId ?? "—";
+  const spend = lines.reduce((sum, l) => sum + (Number(l.cost) || 0), 0);
+
+  const state: "scanning" | "filing" | "idle" = (() => {
+    if (!lastLine) return "idle";
+    if (lastLine.message.toLowerCase().includes("idle")) return "idle";
+    if (lastLine.actor === "analyst") return "filing";
+    if (lastLine.actor === "scout") return "scanning";
+    return "idle";
+  })();
 
   const getActorColor = (actor: string) => {
     if (actor === "scout") return "text-[#CCFF00]";
@@ -178,7 +125,7 @@ export default function StdoutTerminal() {
           <div className="flex items-center gap-2.5">
             <span
               className={`w-1.5 h-1.5 rounded-full ${
-                isIdle
+                state === "idle"
                   ? "bg-[#6E7C82]"
                   : "bg-[#CCFF00] shadow-[0_0_8px_#CCFF00] animate-pulse"
               }`}
@@ -188,7 +135,7 @@ export default function StdoutTerminal() {
             <span>scout@nexus</span>
           </div>
           <div className="text-[#6E7C82] tracking-wider">
-            cycle {cycleNum} · pid 1 · uptime 03:14
+            cycle {cycleNum} · updated {lastPolledAgo}s ago
           </div>
         </div>
 
@@ -198,27 +145,36 @@ export default function StdoutTerminal() {
           className="h-[330px] overflow-y-auto p-3.5 text-xs leading-[1.85] relative select-text"
         >
           <div className="flex flex-col justify-end min-h-full space-y-1">
-            {lines.map((l) => (
-              <div key={l.id} className="flex items-start gap-3 whitespace-pre-wrap break-words font-mono text-[12px]">
-                <span className="text-[#4E4A42] shrink-0">{l.time}</span>
-                <span className={`shrink-0 w-[66px] uppercase font-semibold ${getActorColor(l.actor)}`}>
-                  {l.actor}
-                </span>
-                <span className={`flex-1 ${getLineClass(l.cls)}`}>
-                  {l.msg}
-                </span>
+            {lines.length === 0 ? (
+              <div className="text-[#6E7C82] text-[12px]">
+                {connected
+                  ? "no signal yet — waiting for the next Scout cycle"
+                  : "database not connected — showing no fallback data"}
               </div>
-            ))}
+            ) : (
+              lines.map((l) => (
+                <div key={l.id} className="flex items-start gap-3 whitespace-pre-wrap break-words font-mono text-[12px]">
+                  <span className="text-[#4E4A42] shrink-0">{l.time}</span>
+                  <span className={`shrink-0 w-[66px] uppercase font-semibold ${getActorColor(l.actor)}`}>
+                    {l.actor}
+                  </span>
+                  <span className={`flex-1 ${getLineClass(l.cls)}`}>
+                    {l.glyph ? `${l.glyph} ` : ""}
+                    {l.message}
+                  </span>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
         {/* Terminal Footer */}
         <div className="border-t border-[rgba(233,227,213,0.1)] px-3.5 py-2 flex flex-wrap justify-between items-center text-[10px] tracking-wider text-[#6E7C82] gap-2">
           <div>
-            next cycle in <b className="text-[#CCFF00] font-semibold">{isIdle ? countdown : "--:--"}</b>
+            next cycle in <b className="text-[#CCFF00] font-semibold">{countdown}</b>
           </div>
           <div>
-            spend <b className="text-[#E9E3D5] font-semibold">${spend.toFixed(2)}</b> / $10.00 · 47 headlines seen this cycle
+            spend this window <b className="text-[#E9E3D5] font-semibold">${spend.toFixed(4)}</b> / ${BUDGET_LIMIT.toFixed(2)}
           </div>
         </div>
       </div>

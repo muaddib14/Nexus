@@ -10,9 +10,53 @@ interface MastheadProps {
   isWeavePage?: boolean;
 }
 
+interface Vitals {
+  filedToday: number;
+  leadsFound: number;
+  leadsKilled: number;
+  leadsRefused: number;
+  spentToday: number;
+  budgetLimit: number;
+  uplinkStatus: string;
+}
+
+const fallbackVitals: Vitals = {
+  filedToday: 7,
+  leadsFound: 19,
+  leadsKilled: 10,
+  leadsRefused: 2,
+  spentToday: 3.87,
+  budgetLimit: 10.0,
+  uplinkStatus: "filing live",
+};
+
 export default function Masthead({ activeTab = "wire", setActiveTab, isWeavePage = false }: MastheadProps) {
   const [utcTime, setUtcTime] = useState<string>("--:--:-- UTC");
   const [shiftDuration, setShiftDuration] = useState<string>("00:00:00");
+  const [vitals, setVitals] = useState<Vitals>(fallbackVitals);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadVitals() {
+      try {
+        const res = await fetch("/api/vitals");
+        const json = await res.json();
+        if (!cancelled && json.data) {
+          setVitals(json.data);
+        }
+      } catch (error) {
+        console.error("[Masthead] failed to load vitals", error);
+      }
+    }
+
+    loadVitals();
+    const interval = setInterval(loadVitals, 60_000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, []);
 
   useEffect(() => {
     const shiftStart = Date.now() - (3 * 3600 + 14 * 60 + 22) * 1000;
@@ -95,31 +139,31 @@ export default function Masthead({ activeTab = "wire", setActiveTab, isWeavePage
         <div className="max-w-[920px] mx-auto grid grid-cols-2 sm:grid-cols-6 text-xs font-mono divide-x divide-[rgba(233,227,213,0.1)] border-b sm:border-b-0 border-[rgba(233,227,213,0.1)]">
           <div className="px-4 py-2 flex flex-col gap-0.5">
             <span className="text-[9px] tracking-[0.16em] text-[#9A9385] uppercase">filed today</span>
-            <span className="text-sm font-semibold text-[#E9E3D5]">07</span>
+            <span className="text-sm font-semibold text-[#E9E3D5]">{String(vitals.filedToday).padStart(2, "0")}</span>
           </div>
           <div className="px-4 py-2 flex flex-col gap-0.5">
             <span className="text-[9px] tracking-[0.16em] text-[#9A9385] uppercase">leads found</span>
-            <span className="text-sm font-semibold text-[#E9E3D5]">19</span>
+            <span className="text-sm font-semibold text-[#E9E3D5]">{String(vitals.leadsFound).padStart(2, "0")}</span>
           </div>
           <div className="px-4 py-2 flex flex-col gap-0.5">
             <span className="text-[9px] tracking-[0.16em] text-[#9A9385] uppercase">leads killed</span>
-            <span className="text-sm font-semibold text-[#D64A3A]">10</span>
+            <span className="text-sm font-semibold text-[#D64A3A]">{String(vitals.leadsKilled).padStart(2, "0")}</span>
           </div>
           <div className="px-4 py-2 flex flex-col gap-0.5">
             <span className="text-[9px] tracking-[0.16em] text-[#9A9385] uppercase">leads refused</span>
-            <span className="text-sm font-semibold text-[#D64A3A]">02</span>
+            <span className="text-sm font-semibold text-[#D64A3A]">{String(vitals.leadsRefused).padStart(2, "0")}</span>
           </div>
           <div className="px-4 py-2 flex flex-col gap-0.5">
             <span className="text-[9px] tracking-[0.16em] text-[#9A9385] uppercase">spent today</span>
             <span className="text-sm font-semibold text-[#E9E3D5]">
-              $3.87 <span className="text-[#9A9385] font-normal text-xs">/ 10.00</span>
+              ${Number(vitals.spentToday).toFixed(2)} <span className="text-[#9A9385] font-normal text-xs">/ {Number(vitals.budgetLimit).toFixed(2)}</span>
             </span>
           </div>
           <div className="px-4 py-2 flex flex-col gap-0.5 col-span-2 sm:col-span-1">
             <span className="text-[9px] tracking-[0.16em] text-[#9A9385] uppercase">uplink status</span>
             <span className="text-sm font-semibold text-[#CCFF00] flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-[#CCFF00] shadow-[0_0_8px_#CCFF00] animate-pulse" />
-              filing live
+              {vitals.uplinkStatus}
             </span>
           </div>
         </div>

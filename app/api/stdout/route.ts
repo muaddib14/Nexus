@@ -11,18 +11,24 @@ export async function GET() {
 
   try {
     const rows = await query(`
-      SELECT 
-        id,
-        time_str as "time",
-        cycle_id as "cycleId",
-        actor,
-        glyph,
-        message,
-        level as "cls",
-        cost_usd as "cost"
-      FROM agent_stdout
-      ORDER BY created_at ASC
-      LIMIT 60;
+      SELECT * FROM (
+        SELECT
+          id,
+          time_str as "time",
+          created_at as "createdAt",
+          cycle_id as "cycleId",
+          actor,
+          glyph,
+          message,
+          level as "cls",
+          cost_usd as "cost",
+          tag,
+          lead_id as "leadId"
+        FROM agent_stdout
+        ORDER BY created_at DESC
+        LIMIT 60
+      ) recent
+      ORDER BY "createdAt" ASC;
     `);
 
     return NextResponse.json({

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Terminal, Search, Filter } from "lucide-react";
 
 interface LogEntry {
@@ -11,6 +11,26 @@ interface LogEntry {
   operator: "scout" | "analyst" | "system";
   summary: string;
   detail?: string;
+}
+
+interface RawStdoutRow {
+  id: string;
+  time: string;
+  actor: "scout" | "analyst" | "system";
+  message: string;
+  tag: LogEntry["tag"] | null;
+  leadId: string | null;
+}
+
+function mapStdoutRow(row: RawStdoutRow): LogEntry {
+  return {
+    id: row.id,
+    leadId: row.leadId || undefined,
+    time: `${row.time} UTC`,
+    tag: row.tag || "kept",
+    operator: row.actor,
+    summary: row.message,
+  };
 }
 
 const mockLogs: LogEntry[] = [
@@ -85,8 +105,33 @@ const mockLogs: LogEntry[] = [
 export default function LogStreamSection() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTag, setSelectedTag] = useState<string>("all");
+  const [logs, setLogs] = useState<LogEntry[]>(mockLogs);
 
-  const filteredLogs = mockLogs.filter((log) => {
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadLogs() {
+      try {
+        const res = await fetch("/api/stdout");
+        const json = await res.json();
+        if (!cancelled && Array.isArray(json.data) && json.data.length > 0) {
+          const mapped = (json.data as RawStdoutRow[]).map(mapStdoutRow).reverse();
+          setLogs(mapped);
+        }
+      } catch (error) {
+        console.error("[LogStreamSection] failed to load logs", error);
+      }
+    }
+
+    loadLogs();
+    const interval = setInterval(loadLogs, 30_000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, []);
+
+  const filteredLogs = logs.filter((log) => {
     const matchesTag = selectedTag === "all" || log.tag === selectedTag;
     const matchesSearch =
       log.summary.toLowerCase().includes(searchQuery.toLowerCase()) ||

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 export interface DispatchItem {
   id: string;
@@ -8,6 +8,7 @@ export interface DispatchItem {
   stamp: "flash" | "bulletin" | "urgent" | "routine" | "killed" | "refused";
   date: string;
   time: string;
+  createdAt?: string;
   title: string;
   content: string;
   threadA: string;
@@ -16,6 +17,13 @@ export interface DispatchItem {
   confidence: string;
   rejectedBy?: "scout" | "analyst";
   rejectionReason?: string;
+}
+
+function formatDispatchDate(createdAt?: string, fallbackDate?: string): string {
+  if (!createdAt) return fallbackDate ?? "";
+  const d = new Date(createdAt);
+  if (isNaN(d.getTime())) return fallbackDate ?? "";
+  return d.toLocaleDateString("en-US", { month: "short", day: "2-digit", timeZone: "UTC" });
 }
 
 export const dispatches: DispatchItem[] = [
@@ -92,8 +100,32 @@ export const dispatches: DispatchItem[] = [
 
 export default function WireFeed() {
   const [filter, setFilter] = useState<string>("all");
+  const [items, setItems] = useState<DispatchItem[]>(dispatches);
 
-  const filteredDispatches = dispatches.filter((d) => {
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadDispatches() {
+      try {
+        const res = await fetch("/api/dispatches");
+        const json = await res.json();
+        if (!cancelled && Array.isArray(json.data) && json.data.length > 0) {
+          setItems(json.data);
+        }
+      } catch (error) {
+        console.error("[WireFeed] failed to load dispatches", error);
+      }
+    }
+
+    loadDispatches();
+    const interval = setInterval(loadDispatches, 60_000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, []);
+
+  const filteredDispatches = items.filter((d) => {
     if (filter === "all") return true;
     return d.stamp === filter;
   });
@@ -157,7 +189,9 @@ export default function WireFeed() {
                   </span>
                   <span className="text-[10px] font-mono text-[#CCFF00] font-semibold">{item.leadId}</span>
                 </div>
-                <span className="text-[10px] text-[#6E7C82] tracking-wider">{item.date} · {item.time}</span>
+                <span className="text-[10px] text-[#6E7C82] tracking-wider">
+                  {formatDispatchDate(item.createdAt, item.date)} · {item.time}
+                </span>
               </div>
 
               {/* Main Article Body */}

@@ -45,9 +45,15 @@ CREATE TABLE IF NOT EXISTS agent_stdout (
   glyph TEXT, -- ▸ · ⟡ ✕ → ✎ ✓
   message TEXT NOT NULL,
   level TEXT NOT NULL CHECK (level IN ('ok', 'dim', 'hit', 'kill', 'err')),
-  cost_usd NUMERIC(8, 4)
+  cost_usd NUMERIC(8, 4),
+  tag TEXT CHECK (tag IN ('scanned', 'crossed', 'filed', 'killed', 'refused', 'kept', 'thought')),
+  lead_id TEXT -- e.g. #104, nullable for lines not tied to a specific lead
 );
 CREATE INDEX IF NOT EXISTS idx_agent_stdout_created_at ON agent_stdout (created_at DESC);
+
+-- Migration for existing databases created before tag/lead_id existed
+ALTER TABLE agent_stdout ADD COLUMN IF NOT EXISTS tag TEXT;
+ALTER TABLE agent_stdout ADD COLUMN IF NOT EXISTS lead_id TEXT;
 
 -- 4. The Weave (Longform Editorial §4)
 CREATE TABLE IF NOT EXISTS weaves (

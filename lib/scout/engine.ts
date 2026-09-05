@@ -45,8 +45,8 @@ export async function runScoutCycle(): Promise<CycleResult> {
   // 2. Log Cycle Boot
   if (isDbConfigured) {
     await query(
-      `INSERT INTO agent_stdout (time_str, cycle_id, actor, glyph, message, level, cost_usd)
-       VALUES ($1, $2, 'system', '·', $3, 'dim', NULL);`,
+      `INSERT INTO agent_stdout (time_str, cycle_id, actor, glyph, message, level, cost_usd, tag, lead_id)
+       VALUES ($1, $2, 'system', '·', $3, 'dim', NULL, 'kept', NULL);`,
       [getUtcTime(), cycleId, `wake · cycle ${cycleId} start`]
     );
   }
@@ -63,8 +63,8 @@ export async function runScoutCycle(): Promise<CycleResult> {
 
     if (isDbConfigured) {
       await query(
-        `INSERT INTO agent_stdout (time_str, cycle_id, actor, glyph, message, level, cost_usd)
-         VALUES ($1, $2, 'scout', $3, $4, $5, NULL);`,
+        `INSERT INTO agent_stdout (time_str, cycle_id, actor, glyph, message, level, cost_usd, tag, lead_id)
+         VALUES ($1, $2, 'scout', $3, $4, $5, NULL, 'scanned', NULL);`,
         [getUtcTime(), cycleId, glyph, msg, level]
       );
     }
@@ -72,8 +72,8 @@ export async function runScoutCycle(): Promise<CycleResult> {
 
   if (isDbConfigured) {
     await query(
-      `INSERT INTO agent_stdout (time_str, cycle_id, actor, glyph, message, level, cost_usd)
-       VALUES ($1, $2, 'scout', '·', $3, 'dim', NULL);`,
+      `INSERT INTO agent_stdout (time_str, cycle_id, actor, glyph, message, level, cost_usd, tag, lead_id)
+       VALUES ($1, $2, 'scout', '·', $3, 'dim', NULL, 'scanned', NULL);`,
       [getUtcTime(), cycleId, `dedupe → ${items.length} unique headlines`]
     );
   }
@@ -120,8 +120,8 @@ export async function runScoutCycle(): Promise<CycleResult> {
         console.warn(`[OpenRouter ${response.status}]`, errText);
         if (isDbConfigured) {
           await query(
-            `INSERT INTO agent_stdout (time_str, cycle_id, actor, glyph, message, level, cost_usd)
-             VALUES ($1, $2, 'scout', '▸', $3, 'err', NULL);`,
+            `INSERT INTO agent_stdout (time_str, cycle_id, actor, glyph, message, level, cost_usd, tag, lead_id)
+             VALUES ($1, $2, 'scout', '▸', $3, 'err', NULL, 'scanned', NULL);`,
             [getUtcTime(), cycleId, `OpenRouter ${response.status} rate limited (free tier pool)`]
           );
         }
@@ -167,21 +167,21 @@ export async function runScoutCycle(): Promise<CycleResult> {
   if (isDbConfigured) {
     if (aiOutput.decision === "CROSS") {
       await query(
-        `INSERT INTO agent_stdout (time_str, cycle_id, actor, glyph, message, level, cost_usd)
-         VALUES ($1, $2, 'scout', '⟡', $3, 'hit', NULL);`,
-        [getUtcTime(), cycleId, `candidate  ${aiOutput.threadA} ✕ ${aiOutput.threadB}  ${aiOutput.confidence}`]
+        `INSERT INTO agent_stdout (time_str, cycle_id, actor, glyph, message, level, cost_usd, tag, lead_id)
+         VALUES ($1, $2, 'scout', '⟡', $3, 'hit', NULL, 'crossed', $4);`,
+        [getUtcTime(), cycleId, `candidate  ${aiOutput.threadA} ✕ ${aiOutput.threadB}  ${aiOutput.confidence}`, aiOutput.leadId]
       );
 
       await query(
-        `INSERT INTO agent_stdout (time_str, cycle_id, actor, glyph, message, level, cost_usd)
-         VALUES ($1, $2, 'system', '·', $3, 'dim', $4);`,
-        [getUtcTime(), cycleId, `openrouter (${modelUsed.split("/")[1] || "free"}) · $0.000 (free tier)`, 0.0]
+        `INSERT INTO agent_stdout (time_str, cycle_id, actor, glyph, message, level, cost_usd, tag, lead_id)
+         VALUES ($1, $2, 'system', '·', $3, 'dim', $4, 'thought', $5);`,
+        [getUtcTime(), cycleId, `openrouter (${modelUsed.split("/")[1] || "free"}) · $0.000 (free tier)`, 0.0, aiOutput.leadId]
       );
 
       await query(
-        `INSERT INTO agent_stdout (time_str, cycle_id, actor, glyph, message, level, cost_usd)
-         VALUES ($1, $2, 'analyst', '✓', $3, 'hit', NULL);`,
-        [getUtcTime(), cycleId, `filed ${aiOutput.leadId} "${aiOutput.title?.slice(0, 48)}…"`]
+        `INSERT INTO agent_stdout (time_str, cycle_id, actor, glyph, message, level, cost_usd, tag, lead_id)
+         VALUES ($1, $2, 'analyst', '✓', $3, 'hit', NULL, 'filed', $4);`,
+        [getUtcTime(), cycleId, `filed ${aiOutput.leadId} "${aiOutput.title?.slice(0, 48)}…"`, aiOutput.leadId]
       );
 
       // Insert new dispatch
@@ -201,37 +201,37 @@ export async function runScoutCycle(): Promise<CycleResult> {
         ]
       );
 
-      // Increment Vitals
+      // Upsert Vitals — creates today's row if the Scout hasn't run yet today
       await query(`
-        UPDATE vitals
-        SET 
-          filed_today = filed_today + 1,
-          leads_found = leads_found + 1,
-          updated_at = NOW()
-        WHERE date = CURRENT_DATE;
+        INSERT INTO vitals (date, filed_today, leads_found, leads_killed, leads_refused, spent_today, updated_at)
+        VALUES (CURRENT_DATE, 1, 1, 0, 0, 0, NOW())
+        ON CONFLICT (date) DO UPDATE SET
+          filed_today = vitals.filed_today + 1,
+          leads_found = vitals.leads_found + 1,
+          updated_at = NOW();
       `);
     } else {
       // Log Dropped / Killed
       await query(
-        `INSERT INTO agent_stdout (time_str, cycle_id, actor, glyph, message, level, cost_usd)
-         VALUES ($1, $2, 'scout', '✕', $3, 'kill', NULL);`,
-        [getUtcTime(), cycleId, `dropped   ${aiOutput.rejectionReason || "no second thread to cross"}   sig 0.28`]
+        `INSERT INTO agent_stdout (time_str, cycle_id, actor, glyph, message, level, cost_usd, tag, lead_id)
+         VALUES ($1, $2, 'scout', '✕', $3, 'kill', NULL, 'killed', $4);`,
+        [getUtcTime(), cycleId, `dropped   ${aiOutput.rejectionReason || "no second thread to cross"}   sig 0.28`, aiOutput.leadId]
       );
 
       await query(`
-        UPDATE vitals
-        SET 
-          leads_found = leads_found + 1,
-          leads_killed = leads_killed + 1,
-          updated_at = NOW()
-        WHERE date = CURRENT_DATE;
+        INSERT INTO vitals (date, filed_today, leads_found, leads_killed, leads_refused, spent_today, updated_at)
+        VALUES (CURRENT_DATE, 0, 1, 1, 0, 0, NOW())
+        ON CONFLICT (date) DO UPDATE SET
+          leads_found = vitals.leads_found + 1,
+          leads_killed = vitals.leads_killed + 1,
+          updated_at = NOW();
       `);
     }
 
     // Complete Cycle
     await query(
-      `INSERT INTO agent_stdout (time_str, cycle_id, actor, glyph, message, level, cost_usd)
-       VALUES ($1, $2, 'system', '·', $3, 'dim', NULL);`,
+      `INSERT INTO agent_stdout (time_str, cycle_id, actor, glyph, message, level, cost_usd, tag, lead_id)
+       VALUES ($1, $2, 'system', '·', $3, 'dim', NULL, 'kept', NULL);`,
       [getUtcTime(), cycleId, `cycle ${cycleId} complete · ${aiOutput.decision === "CROSS" ? "1 filed" : "0 filed"} · 1 dropped`]
     );
 
