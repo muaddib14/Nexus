@@ -186,13 +186,13 @@ export default function HeroFiling() {
   return (
     <section className="py-10 border-b border-[rgba(233,227,213,0.1)]">
       {/* Top Header with Live Indicator & Cycle Controller */}
-      <div className="flex items-center justify-between gap-3 mb-5 font-mono text-[10.5px] uppercase tracking-[0.28em] text-[#EBA43C]">
+      <div className="flex items-center justify-between gap-3 mb-5 font-mono text-[10.5px] uppercase tracking-[0.28em] text-[#CCFF00]">
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#EBA43C] animate-pulse" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#CCFF00] animate-pulse" />
             live at the crossing — now
           </span>
-          <div className="hidden sm:block w-12 h-[1px] bg-[rgba(235,164,60,0.25)]" />
+          <div className="hidden sm:block w-12 h-[1px] bg-[rgba(204,255,0,0.25)]" />
         </div>
 
         {/* Dynamic Topic Switcher Controller */}
@@ -204,14 +204,14 @@ export default function HeroFiling() {
             <button
               onClick={handlePrev}
               title="Previous crossing dispatch"
-              className="px-2 py-0.5 hover:bg-[rgba(235,164,60,0.1)] hover:text-[#EBA43C] transition-colors border-r border-[rgba(233,227,213,0.18)] cursor-pointer"
+              className="px-2 py-0.5 hover:bg-[rgba(204,255,0,0.1)] hover:text-[#CCFF00] transition-colors border-r border-[rgba(233,227,213,0.18)] cursor-pointer"
             >
               ‹
             </button>
             <button
               onClick={handleNext}
               title="Next crossing dispatch"
-              className="px-2 py-0.5 hover:bg-[rgba(235,164,60,0.1)] hover:text-[#EBA43C] transition-colors cursor-pointer"
+              className="px-2 py-0.5 hover:bg-[rgba(204,255,0,0.1)] hover:text-[#CCFF00] transition-colors cursor-pointer"
             >
               ›
             </button>
@@ -220,7 +220,7 @@ export default function HeroFiling() {
             onClick={() => setIsAutoCycling(!isAutoCycling)}
             className={`hidden md:inline px-1.5 py-0.5 border text-[9px] transition-colors ${
               isAutoCycling
-                ? "border-[#EBA43C]/40 text-[#EBA43C] bg-[#EBA43C]/5"
+                ? "border-[#CCFF00]/40 text-[#CCFF00] bg-[#CCFF00]/5"
                 : "border-[rgba(233,227,213,0.14)] text-[#6E7C82]"
             }`}
           >
@@ -234,20 +234,20 @@ export default function HeroFiling() {
         <div className="h-[1px] bg-gradient-to-r from-transparent to-[rgba(233,227,213,0.18)]" />
         <div className="flex items-center gap-2 px-2 py-0.5 bg-[#17140E]/60 border border-[rgba(233,227,213,0.08)]">
           <span className="text-[#D8D2C4] font-medium">{activeDispatch.threadA}</span>
-          <span className="text-[#EBA43C] font-bold text-sm animate-spin-x">✕</span>
+          <span className="text-[#CCFF00] font-bold text-sm animate-spin-x">✕</span>
           <span className="text-[#D8D2C4] font-medium">{activeDispatch.threadB}</span>
         </div>
         <div className="h-[1px] bg-gradient-to-l from-transparent to-[rgba(233,227,213,0.18)]" />
       </div>
 
       {/* Hero Dispatch Filing Card */}
-      <article className="bg-[#17140E] border border-[rgba(233,227,213,0.18)] border-l-4 border-l-[#EBA43C] p-6 sm:p-7 relative shadow-2xl transition-all duration-300">
+      <article className="bg-[#17140E] border border-[rgba(233,227,213,0.18)] border-l-4 border-l-[#CCFF00] p-6 sm:p-7 relative shadow-2xl transition-all duration-300">
         <div className="flex items-center gap-3.5 mb-4 flex-wrap text-xs font-mono">
-          <span className="text-[10px] font-bold tracking-[0.18em] px-2 py-0.5 border border-[#EBA43C] text-[#EBA43C] uppercase">
+          <span className="text-[10px] font-bold tracking-[0.18em] px-2 py-0.5 border border-[#CCFF00] text-[#CCFF00] uppercase">
             {activeDispatch.stamp}
           </span>
           <span className="text-[11px] text-[#6E7C82] tracking-wider">
-            <b className="text-[#9A9385] font-medium">{activeDispatch.desk}</b> · <span>{activeDispatch.time}</span> · filed by analyst · <span className="text-[#EBA43C]">{activeDispatch.leadId}</span>
+            <b className="text-[#9A9385] font-medium">{activeDispatch.desk}</b> · <span>{activeDispatch.time}</span> · filed by analyst · <span className="text-[#CCFF00]">{activeDispatch.leadId}</span>
           </span>
         </div>
 

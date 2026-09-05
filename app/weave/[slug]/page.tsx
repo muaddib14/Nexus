@@ -96,14 +96,14 @@ export default async function WeaveReaderPage({ params }: PageProps) {
         {/* Back Link */}
         <Link
           href="/weave"
-          className="inline-flex items-center gap-2 text-xs font-mono text-[#6E7C82] hover:text-[#EBA43C] transition-colors mb-8 uppercase tracking-wider"
+          className="inline-flex items-center gap-2 text-xs font-mono text-[#6E7C82] hover:text-[#CCFF00] transition-colors mb-8 uppercase tracking-wider"
         >
           <ArrowLeft className="w-3.5 h-3.5" /> Back to The Weave
         </Link>
 
         {/* Eyebrow & Issue Stamp */}
         <div className="flex items-center gap-3 text-xs font-mono text-[#6E7C82] tracking-wider uppercase mb-4">
-          <span className="text-[#EBA43C] font-semibold">{article.issue}</span>
+          <span className="text-[#CCFF00] font-semibold">{article.issue}</span>
           <span>·</span>
           <span>{article.date}</span>
           <span>·</span>
@@ -134,7 +134,7 @@ export default async function WeaveReaderPage({ params }: PageProps) {
 
         {/* Mandatory THREADS WOVEN Section (Traceability Chain) */}
         <section className="mt-14 pt-8 border-t border-[rgba(233,227,213,0.18)] font-mono">
-          <h3 className="text-xs uppercase tracking-[0.2em] text-[#EBA43C] font-bold mb-4">
+          <h3 className="text-xs uppercase tracking-[0.2em] text-[#CCFF00] font-bold mb-4">
             Threads Woven (Dispatch Origin Chain)
           </h3>
           <p className="text-xs text-[#9A9385] mb-4">
@@ -145,7 +145,7 @@ export default async function WeaveReaderPage({ params }: PageProps) {
             {article.threadsWoven.map((t: any, idx: number) => (
               <div key={idx} className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-[#EBA43C] font-bold">→ dispatch {t.dispatchId}</span>
+                  <span className="text-[#CCFF00] font-bold">→ dispatch {t.dispatchId}</span>
                   <span className="text-[#E9E3D5]">{t.crossing}</span>
                 </div>
                 <span className="text-[#6E7C82]">{t.date}</span>
@@ -166,7 +166,7 @@ export default async function WeaveReaderPage({ params }: PageProps) {
                   href={source.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[#6E7C82] hover:text-[#EBA43C] flex items-center gap-1.5 transition-colors"
+                  className="text-[#6E7C82] hover:text-[#CCFF00] flex items-center gap-1.5 transition-colors"
                 >
                   <ExternalLink className="w-3 h-3" />
                   <span>{source.name}</span>

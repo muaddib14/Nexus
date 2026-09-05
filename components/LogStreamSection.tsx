@@ -100,7 +100,7 @@ export default function LogStreamSection() {
       case "filed":
         return "bg-emerald-950/60 text-emerald-400 border-emerald-700/50";
       case "crossed":
-        return "bg-amber-950/60 text-[#EBA43C] border-amber-700/50";
+        return "bg-amber-950/60 text-[#CCFF00] border-amber-700/50";
       case "killed":
       case "refused":
         return "bg-rose-950/60 text-rose-400 border-rose-700/50";
@@ -119,7 +119,7 @@ export default function LogStreamSection() {
     <section id="log-section" className="py-8 bg-[#17140E] border border-[rgba(233,227,213,0.18)] p-5 sm:p-6 shadow-2xl my-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[rgba(233,227,213,0.1)] font-mono">
         <div className="flex items-center gap-2.5">
-          <Terminal className="w-5 h-5 text-[#EBA43C]" />
+          <Terminal className="w-5 h-5 text-[#CCFF00]" />
           <div>
             <h2 className="font-bold text-sm tracking-[0.2em] uppercase text-[#E9E3D5]">
               Autonomous Stream (/log)
@@ -139,7 +139,7 @@ export default function LogStreamSection() {
               placeholder="Search logs or #lead..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-[#100E0A] border border-[rgba(233,227,213,0.18)] rounded pl-8 pr-3 py-1 text-xs text-[#E9E3D5] placeholder-[#6E7C82] focus:outline-none focus:border-[#EBA43C]"
+              className="bg-[#100E0A] border border-[rgba(233,227,213,0.18)] rounded pl-8 pr-3 py-1 text-xs text-[#E9E3D5] placeholder-[#6E7C82] focus:outline-none focus:border-[#CCFF00]"
             />
           </div>
 
@@ -151,7 +151,7 @@ export default function LogStreamSection() {
                 onClick={() => setSelectedTag(tag)}
                 className={`px-2 py-0.5 uppercase border transition-all ${
                   selectedTag === tag
-                    ? "border-[#EBA43C] text-[#EBA43C] bg-[rgba(235,164,60,0.1)] font-bold"
+                    ? "border-[#CCFF00] text-[#CCFF00] bg-[rgba(204,255,0,0.1)] font-bold"
                     : "border-[rgba(233,227,213,0.1)] text-[#6E7C82] hover:text-[#E9E3D5]"
                 }`}
               >
@@ -173,7 +173,7 @@ export default function LogStreamSection() {
                 <time>{log.time}</time>
                 <span className="uppercase text-[#9A9385] font-semibold">[{log.operator}]</span>
                 {log.leadId && (
-                  <span className="text-[#EBA43C] font-semibold bg-[#EBA43C]/10 px-1 rounded text-[9.5px]">
+                  <span className="text-[#CCFF00] font-semibold bg-[#CCFF00]/10 px-1 rounded text-[9.5px]">
                     {log.leadId}
                   </span>
                 )}

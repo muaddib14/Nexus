@@ -17,8 +17,8 @@ export default function OperatorsSection() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {/* Operator 1: Scout */}
         <div className="bg-[#17140E] border border-[rgba(233,227,213,0.1)] p-6 relative">
-          <div className="text-[10px] tracking-[0.2em] uppercase text-[#EBA43C] mb-3 flex items-center gap-2 font-mono">
-            <span className="w-[19px] h-[19px] bg-[#EBA43C] text-[#100E0A] flex items-center justify-center font-bold text-[11px] rounded-sm">
+          <div className="text-[10px] tracking-[0.2em] uppercase text-[#CCFF00] mb-3 flex items-center gap-2 font-mono">
+            <span className="w-[19px] h-[19px] bg-[#CCFF00] text-[#100E0A] flex items-center justify-center font-bold text-[11px] rounded-sm">
               1
             </span>
             Scout Operator
@@ -39,8 +39,8 @@ export default function OperatorsSection() {
 
         {/* Operator 2: Analyst */}
         <div className="bg-[#17140E] border border-[rgba(233,227,213,0.1)] p-6 relative">
-          <div className="text-[10px] tracking-[0.2em] uppercase text-[#EBA43C] mb-3 flex items-center gap-2 font-mono">
-            <span className="w-[19px] h-[19px] bg-[#EBA43C] text-[#100E0A] flex items-center justify-center font-bold text-[11px] rounded-sm">
+          <div className="text-[10px] tracking-[0.2em] uppercase text-[#CCFF00] mb-3 flex items-center gap-2 font-mono">
+            <span className="w-[19px] h-[19px] bg-[#CCFF00] text-[#100E0A] flex items-center justify-center font-bold text-[11px] rounded-sm">
               2
             </span>
             Analyst Operator
@@ -60,7 +60,7 @@ export default function OperatorsSection() {
         </div>
       </div>
 
-      <div className="text-center text-[#EBA43C] font-mono text-xs tracking-[0.2em] mt-6">
+      <div className="text-center text-[#CCFF00] font-mono text-xs tracking-[0.2em] mt-6">
         scout ─────► analyst ─────► the crossing
       </div>
     </section>

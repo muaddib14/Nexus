@@ -151,7 +151,7 @@ export default function StdoutTerminal() {
   }, [lines]);
 
   const getActorColor = (actor: string) => {
-    if (actor === "scout") return "text-[#EBA43C]";
+    if (actor === "scout") return "text-[#CCFF00]";
     if (actor === "analyst") return "text-[#8FB3A8]";
     return "text-[#6E7C82]";
   };
@@ -180,7 +180,7 @@ export default function StdoutTerminal() {
               className={`w-1.5 h-1.5 rounded-full ${
                 isIdle
                   ? "bg-[#6E7C82]"
-                  : "bg-[#EBA43C] shadow-[0_0_8px_#EBA43C] animate-pulse"
+                  : "bg-[#CCFF00] shadow-[0_0_8px_#CCFF00] animate-pulse"
               }`}
             />
             <span className="text-[#E9E3D5] font-semibold">{state}</span>
@@ -215,7 +215,7 @@ export default function StdoutTerminal() {
         {/* Terminal Footer */}
         <div className="border-t border-[rgba(233,227,213,0.1)] px-3.5 py-2 flex flex-wrap justify-between items-center text-[10px] tracking-wider text-[#6E7C82] gap-2">
           <div>
-            next cycle in <b className="text-[#EBA43C] font-semibold">{isIdle ? countdown : "--:--"}</b>
+            next cycle in <b className="text-[#CCFF00] font-semibold">{isIdle ? countdown : "--:--"}</b>
           </div>
           <div>
             spend <b className="text-[#E9E3D5] font-semibold">${spend.toFixed(2)}</b> / $10.00 · 47 headlines seen this cycle

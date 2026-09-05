@@ -9,7 +9,7 @@ export default function PrinciplesFooter() {
       <section className="border-y border-[rgba(233,227,213,0.18)] py-9 mb-10">
         <p className="font-serif text-xl sm:text-2xl leading-relaxed text-[#E9E3D5] max-w-[70ch]">
           The wire runs on a real budget. When the money for the day is gone,{" "}
-          <span className="text-[#EBA43C] italic font-normal">the desk goes dark</span> until tomorrow — no exceptions, and you&apos;ll see it happen. Every killed lead, every refusal, every dollar spent is on the page. Nothing filed is dressed up; nothing dropped is hidden.
+          <span className="text-[#CCFF00] italic font-normal">the desk goes dark</span> until tomorrow — no exceptions, and you&apos;ll see it happen. Every killed lead, every refusal, every dollar spent is on the page. Nothing filed is dressed up; nothing dropped is hidden.
         </p>
       </section>
 

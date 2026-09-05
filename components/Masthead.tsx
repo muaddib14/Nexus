@@ -39,7 +39,7 @@ export default function Masthead({ activeTab = "wire", setActiveTab, isWeavePage
     <header className="sticky top-0 z-40 bg-[#100E0A]/95 backdrop-blur-md border-b border-[rgba(233,227,213,0.18)]">
       <div className="max-w-[920px] mx-auto px-6 py-3.5 flex flex-wrap items-baseline justify-between gap-4">
         <Link href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
-          <div className="w-2.5 h-2.5 rounded-full bg-[#EBA43C] shadow-[0_0_10px_#EBA43C] animate-pulse-glow" />
+          <div className="w-2.5 h-2.5 rounded-full bg-[#CCFF00] shadow-[0_0_10px_#CCFF00] animate-pulse-glow" />
           <span className="font-bold tracking-[0.22em] text-lg text-[#E9E3D5]">NEXUS</span>
           <span className="text-[10.5px] uppercase tracking-[0.14em] text-[#9A9385] hidden sm:inline">
             macro ✕ crypto · autonomous desk
@@ -53,7 +53,7 @@ export default function Masthead({ activeTab = "wire", setActiveTab, isWeavePage
               onClick={() => setActiveTab && setActiveTab("wire")}
               className={`px-3 py-1 text-[11px] font-medium tracking-wider uppercase transition-all rounded ${
                 !isWeavePage && activeTab === "wire"
-                  ? "bg-[#EBA43C] text-[#100E0A] font-bold"
+                  ? "bg-[#CCFF00] text-[#100E0A] font-bold"
                   : "text-[#9A9385] hover:text-[#E9E3D5]"
               }`}
             >
@@ -64,7 +64,7 @@ export default function Masthead({ activeTab = "wire", setActiveTab, isWeavePage
               onClick={() => setActiveTab && setActiveTab("log")}
               className={`px-3 py-1 text-[11px] flex items-center gap-1.5 font-medium tracking-wider uppercase transition-all rounded ${
                 !isWeavePage && activeTab === "log"
-                  ? "bg-[#EBA43C] text-[#100E0A] font-bold"
+                  ? "bg-[#CCFF00] text-[#100E0A] font-bold"
                   : "text-[#9A9385] hover:text-[#E9E3D5]"
               }`}
             >
@@ -75,7 +75,7 @@ export default function Masthead({ activeTab = "wire", setActiveTab, isWeavePage
               href="/weave"
               className={`px-3 py-1 text-[11px] flex items-center gap-1.5 font-medium tracking-wider uppercase transition-all rounded ${
                 isWeavePage
-                  ? "bg-[#EBA43C] text-[#100E0A] font-bold"
+                  ? "bg-[#CCFF00] text-[#100E0A] font-bold"
                   : "text-[#9A9385] hover:text-[#E9E3D5]"
               }`}
             >
@@ -117,8 +117,8 @@ export default function Masthead({ activeTab = "wire", setActiveTab, isWeavePage
           </div>
           <div className="px-4 py-2 flex flex-col gap-0.5 col-span-2 sm:col-span-1">
             <span className="text-[9px] tracking-[0.16em] text-[#9A9385] uppercase">uplink status</span>
-            <span className="text-sm font-semibold text-[#EBA43C] flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#EBA43C] shadow-[0_0_8px_#EBA43C] animate-pulse" />
+            <span className="text-sm font-semibold text-[#CCFF00] flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#CCFF00] shadow-[0_0_8px_#CCFF00] animate-pulse" />
               filing live
             </span>
           </div>

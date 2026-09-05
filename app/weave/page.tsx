@@ -103,12 +103,12 @@ export default async function WeaveIndexPage() {
         {/* Section Header */}
         <div className="pb-8 border-b border-[rgba(233,227,213,0.18)]">
           <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
-            <div className="flex items-center gap-2.5 text-[#EBA43C] text-xs uppercase tracking-[0.24em] font-mono">
+            <div className="flex items-center gap-2.5 text-[#CCFF00] text-xs uppercase tracking-[0.24em] font-mono">
               <BookOpen className="w-4 h-4" />
               <span>The Editorial Fabric</span>
             </div>
             <span className="text-[10px] text-[#6E7C82] flex items-center gap-1.5 border border-[rgba(233,227,213,0.12)] px-2 py-0.5">
-              <Sparkles className="w-3 h-3 text-[#EBA43C]" />
+              <Sparkles className="w-3 h-3 text-[#CCFF00]" />
               auto-synthesizing desk active
             </span>
           </div>
@@ -127,14 +127,14 @@ export default async function WeaveIndexPage() {
             <article key={article.slug} className="py-8 group">
               <Link href={`/weave/${article.slug}`} className="block space-y-3.5">
                 <div className="flex items-center gap-3 text-[11px] text-[#6E7C82] tracking-wider uppercase">
-                  <span className="text-[#EBA43C] font-semibold">{article.issue}</span>
+                  <span className="text-[#CCFF00] font-semibold">{article.issue}</span>
                   <span>·</span>
                   <span>{article.date}</span>
                   <span>·</span>
                   <span>{article.readTime}</span>
                 </div>
 
-                <h2 className="font-serif text-2xl sm:text-3xl text-[#E9E3D5] group-hover:text-[#EBA43C] transition-colors leading-snug">
+                <h2 className="font-serif text-2xl sm:text-3xl text-[#E9E3D5] group-hover:text-[#CCFF00] transition-colors leading-snug">
                   {article.title}
                 </h2>
 
@@ -152,7 +152,7 @@ export default async function WeaveIndexPage() {
                     </span>
                   </div>
 
-                  <span className="text-[#EBA43C] text-xs flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                  <span className="text-[#CCFF00] text-xs flex items-center gap-1 group-hover:translate-x-1 transition-transform">
                     Read synthesis <ArrowRight className="w-3.5 h-3.5" />
                   </span>
                 </div>

@@ -116,7 +116,7 @@ export default function WireFeed() {
               onClick={() => setFilter(type)}
               className={`px-2.5 py-1 uppercase transition-colors border ${
                 filter === type
-                  ? "border-[#EBA43C] text-[#EBA43C] bg-[rgba(235,164,60,0.1)] font-bold"
+                  ? "border-[#CCFF00] text-[#CCFF00] bg-[rgba(204,255,0,0.1)] font-bold"
                   : "border-[rgba(233,227,213,0.1)] text-[#6E7C82] hover:text-[#E9E3D5]"
               }`}
             >
@@ -155,7 +155,7 @@ export default function WireFeed() {
                   >
                     {item.stamp}
                   </span>
-                  <span className="text-[10px] font-mono text-[#EBA43C] font-semibold">{item.leadId}</span>
+                  <span className="text-[10px] font-mono text-[#CCFF00] font-semibold">{item.leadId}</span>
                 </div>
                 <span className="text-[10px] text-[#6E7C82] tracking-wider">{item.date} · {item.time}</span>
               </div>
@@ -186,7 +186,7 @@ export default function WireFeed() {
                 {/* Crossing Badge */}
                 <div className="inline-flex items-center gap-2 text-[10.5px] uppercase tracking-wider text-[#6E7C82] font-mono pt-1">
                   <span className="text-[#9A9385]">{item.threadA}</span>
-                  <span className="text-[#EBA43C] font-bold text-xs">✕</span>
+                  <span className="text-[#CCFF00] font-bold text-xs">✕</span>
                   <span className="text-[#9A9385]">{item.threadB}</span>
                 </div>
 
