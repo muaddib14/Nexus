@@ -79,3 +79,39 @@ CREATE TABLE IF NOT EXISTS weave_threads (
   crossing_title TEXT NOT NULL,
   dispatch_date TEXT NOT NULL
 );
+
+-- 6. The Quarter — periodic landscape map + self-scorecard (Dev Brief "The Quarter" §7)
+CREATE TABLE IF NOT EXISTS quarter_entries (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  kind TEXT CHECK (kind IN ('monthly', 'quarterly')),
+  period_label TEXT,          -- "Sep 2026" / "Q3 2026"
+  slug TEXT UNIQUE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  published_at TIMESTAMPTZ,
+  title TEXT,
+  dek TEXT,
+  what_changed TEXT,
+  forces JSONB,               -- [{category, description, dispatch_ids[]}]
+  tensions JSONB,             -- [{title, pulling_up, pulling_down, decider, dispatch_ids[]}]
+  watch_list JSONB,           -- [string]
+  status TEXT DEFAULT 'writing' CHECK (status IN ('writing', 'published', 'skipped')),
+  skip_reason TEXT,           -- filled when status='skipped' (not enough signal this period)
+  cost_usd NUMERIC(8, 4)
+);
+
+-- Scorecard: each entry grades the entry before it
+CREATE TABLE IF NOT EXISTS quarter_scores (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  entry_id UUID REFERENCES quarter_entries(id),        -- the entry doing the scoring
+  scored_entry_id UUID REFERENCES quarter_entries(id), -- the entry being scored
+  item TEXT,                  -- the observation/variable being graded
+  verdict TEXT CHECK (verdict IN ('hit', 'partial', 'miss', 'blind_spot')),
+  note TEXT
+);
+
+-- Links a Quarter entry back to the dispatches it was synthesized from
+CREATE TABLE IF NOT EXISTS quarter_sources (
+  entry_id UUID REFERENCES quarter_entries(id),
+  dispatch_id UUID REFERENCES dispatches(id),
+  PRIMARY KEY (entry_id, dispatch_id)
+);

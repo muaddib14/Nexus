@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Terminal, BookOpen, Radio } from "lucide-react";
+import { Terminal, BookOpen, Radio, Map } from "lucide-react";
 import { usePolling } from "@/lib/hooks/usePolling";
 
 // Vitals only change when the Scout cron fires (~every 30 min) — no point polling faster
@@ -12,6 +12,7 @@ interface MastheadProps {
   activeTab?: "wire" | "log";
   setActiveTab?: (tab: "wire" | "log") => void;
   isWeavePage?: boolean;
+  activeSection?: "weave" | "quarter";
 }
 
 interface Vitals {
@@ -34,7 +35,9 @@ const fallbackVitals: Vitals = {
   uplinkStatus: "filing live",
 };
 
-export default function Masthead({ activeTab = "wire", setActiveTab, isWeavePage = false }: MastheadProps) {
+export default function Masthead({ activeTab = "wire", setActiveTab, isWeavePage = false, activeSection }: MastheadProps) {
+  const resolvedSection = activeSection || (isWeavePage ? "weave" : undefined);
+  const isAnySectionActive = !!resolvedSection;
   const [utcTime, setUtcTime] = useState<string>("--:--:-- UTC");
   const [shiftDuration, setShiftDuration] = useState<string>("00:00:00");
   const [vitals, setVitals] = useState<Vitals>(fallbackVitals);
@@ -91,7 +94,7 @@ export default function Masthead({ activeTab = "wire", setActiveTab, isWeavePage
               href="/?tab=wire"
               onClick={() => setActiveTab && setActiveTab("wire")}
               className={`px-3 py-1 text-[11px] font-medium tracking-wider uppercase transition-all rounded ${
-                !isWeavePage && activeTab === "wire"
+                !isAnySectionActive && activeTab === "wire"
                   ? "bg-[#CCFF00] text-[#100E0A] font-bold"
                   : "text-[#9A9385] hover:text-[#E9E3D5]"
               }`}
@@ -102,7 +105,7 @@ export default function Masthead({ activeTab = "wire", setActiveTab, isWeavePage
               href="/?tab=log"
               onClick={() => setActiveTab && setActiveTab("log")}
               className={`px-3 py-1 text-[11px] flex items-center gap-1.5 font-medium tracking-wider uppercase transition-all rounded ${
-                !isWeavePage && activeTab === "log"
+                !isAnySectionActive && activeTab === "log"
                   ? "bg-[#CCFF00] text-[#100E0A] font-bold"
                   : "text-[#9A9385] hover:text-[#E9E3D5]"
               }`}
@@ -113,13 +116,24 @@ export default function Masthead({ activeTab = "wire", setActiveTab, isWeavePage
             <Link
               href="/weave"
               className={`px-3 py-1 text-[11px] flex items-center gap-1.5 font-medium tracking-wider uppercase transition-all rounded ${
-                isWeavePage
+                resolvedSection === "weave"
                   ? "bg-[#CCFF00] text-[#100E0A] font-bold"
                   : "text-[#9A9385] hover:text-[#E9E3D5]"
               }`}
             >
               <BookOpen className="w-3 h-3" />
               The Weave
+            </Link>
+            <Link
+              href="/quarter"
+              className={`px-3 py-1 text-[11px] flex items-center gap-1.5 font-medium tracking-wider uppercase transition-all rounded ${
+                resolvedSection === "quarter"
+                  ? "bg-[#CCFF00] text-[#100E0A] font-bold"
+                  : "text-[#9A9385] hover:text-[#E9E3D5]"
+              }`}
+            >
+              <Map className="w-3 h-3" />
+              The Quarter
             </Link>
           </div>
 
