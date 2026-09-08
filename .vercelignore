@@ -1,0 +1,5 @@
+# Smart contract project (Hardhat/Solidity) — not part of the Next.js web app.
+# Kept in this repo for convenience, but must never be uploaded to Vercel:
+# different toolchain (Hardhat/ESM), holds a deployer private key in staking/.env,
+# and Vercel has no business building or bundling any of it.
+staking/

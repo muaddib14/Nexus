@@ -1,0 +1,26 @@
+{
+  "name": "nexus-staking",
+  "version": "1.0.0",
+  "description": "NEXUS token staking — SimpleStaking V1 smart contract",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy:baseSepolia": "hardhat run scripts/deploy.ts --network baseSepolia",
+    "deploy:robinhoodTestnet": "hardhat run scripts/deploy.ts --network robinhoodTestnet",
+    "deploy:robinhoodMainnet": "hardhat run scripts/deploy.ts --network robinhoodMainnet"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox-viem": "^5.0.7",
+    "@openzeppelin/contracts": "^5.6.1",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^26.5.0",
+    "hardhat": "^3.16.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^7.0.2"
+  }
+}
