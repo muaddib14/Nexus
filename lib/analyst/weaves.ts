@@ -1,72 +1,38 @@
 import { query, isDbConfigured } from "@/lib/db";
+import { WEAVE_SYSTEM_PROMPT } from "./prompts";
 
 export interface GenerateWeaveResult {
   success: boolean;
-  issueNumber: number;
-  slug: string;
-  title: string;
+  issueNumber?: number;
+  slug?: string;
+  title?: string;
+  skipReason?: string;
 }
 
-// Curated longform synthesis topics for auto-publishing
-const WEAVE_BLUEPRINTS = [
-  {
-    title: "The Anatomy of Digital Collateral in Tightening Dollar Regimes",
-    dek: "Synthesizing recent sessions of front-end dollar hardening with the quiet compression in on-chain borrowing spreads and perpetual funding.",
-    slug: "anatomy-of-digital-collateral-in-tightening-dollar-regimes",
-    tags: ["macro", "collateral", "funding"],
-    readingMinutes: 7,
-    threadsSummary: "5 threads woven · 12 sources",
-    content: [
-      "Over the preceding trading sessions, the intersection of traditional repo markets and decentralized collateral facilities has exposed a structural reality: digital liquidity does not decouple from sovereign dollar rates; it reflects them with higher sensitivity.",
-      "As short-dated Treasury bill yields elevated following labor and inflation prints, institutional desks methodically reduced balance-sheet risk across digital derivatives venues. This dynamic manifested not as panic selling, but as orderly deleveraging — compressed basis across quarterly futures and flat funding in perpetual swaps.",
-      "Crucially, stablecoin velocity registered a second straight contraction. When dollar yields outside the digital perimeter exceed 4.5%, the opportunity cost of maintaining un-staked stablecoin float becomes prohibitive for macro balance sheets. Arbitrageurs quietly redeemed tokens for short-duration paper, causing a synchronous shrinkage across both ecosystems.",
-      "The desk observes that these movements reinforce the crossing thesis: macroeconomic tightening acts as an invisible gravitational pull on digital liquidity depth. Until front-end yields stabilize, risk assets will continue to price in the higher cost of sovereign leverage."
-    ],
-    threads: [
-      { leadId: "#105", crossing: "rate-path repricing ✕ perp funding", date: "Today" },
-      { leadId: "#104", crossing: "dollar funding ✕ stablecoin supply", date: "Yesterday" },
-      { leadId: "#106", crossing: "energy print ✕ risk appetite", date: "3 Sep" }
-    ]
-  },
-  {
-    title: "When Repo Friction Transmits to Perpetual Futures Basis",
-    dek: "How subtle strains in overnight commercial bank clearing rails ripple into the pricing of digital asset derivatives across global venues.",
-    slug: "when-repo-friction-transmits-to-perpetual-futures-basis",
-    tags: ["rates", "perps", "liquidity"],
-    readingMinutes: 6,
-    threadsSummary: "6 threads woven · 15 sources",
-    content: [
-      "Traditional money markets rarely generate dramatic headlines, but their subtle frictions invariably dictate global risk capacity. During recent overnight settlement windows, bank reserve balances experienced accelerated drainage, prompting liquidity providers to tighten credit spreads.",
-      "Within hours, the digital asset tape mirrored this caution. Funding rates on major perpetual swaps converged toward zero, reflecting an abrupt unwillingness among market makers to finance aggressive upside leverage.",
-      "This transmission demonstrates why the desk monitors both rails simultaneously. What appears to a pure crypto trader as idiosyncratic exhaustion is, at the crossing, simply a mathematical reflection of collateral demands across prime broker networks.",
-      "Observation remains paramount: we document the synchronization without forecasting direction. Should commercial clearing frictions abate into the upcoming central bank session, leverage capacity will naturally reconstitute; if friction persists, expect the digital perimeter to stay subdued."
-    ],
-    threads: [
-      { leadId: "#107", crossing: "reserve drainage ✕ collateral spreads", date: "Today" },
-      { leadId: "#105", crossing: "rate-path repricing ✕ perp funding", date: "Yesterday" },
-      { leadId: "#104", crossing: "dollar funding ✕ stablecoin supply", date: "2 Sep" }
-    ]
-  },
-  {
-    title: "The Yield Gravity: Sovereign Cash vs Digital Beta",
-    dek: "Evaluating the multi-week divergence between risk-free Treasury benchmark rates and digital asset accumulation patterns.",
-    slug: "yield-gravity-sovereign-cash-vs-digital-beta",
-    tags: ["sovereign", "treasuries", "beta"],
-    readingMinutes: 8,
-    threadsSummary: "7 threads woven · 16 sources",
-    content: [
-      "Capital is inherently agnostic to technology rails; it seeks optimal risk-adjusted preservation. When risk-free sovereign debt instruments offer compelling real returns, risk assets of all varieties encounter what the desk terms 'yield gravity.'",
-      "Throughout the latest reporting cycle, digital asset volumes have concentrated heavily in market-making and delta-neutral strategies, while passive directional spot accumulation remained defensive. Institutional participants are choosing to deploy collateral into Treasury bills and overnight repo rather than expanding high-beta exposure.",
-      "This structural posture explains why headline macroeconomic catalysts fail to generate sustained breakouts. Every upward impulse is met with institutional profit-taking to lock in risk-free yield elsewhere.",
-      "The crossing points documented by our desk affirm that digital assets operate as high-beta satellites to the core sovereign dollar clearing system. Watching both threads together provides the only coherent perspective on institutional positioning."
-    ],
-    threads: [
-      { leadId: "#106", crossing: "energy print ✕ risk appetite", date: "Today" },
-      { leadId: "#107", crossing: "reserve drainage ✕ collateral spreads", date: "Yesterday" },
-      { leadId: "#104", crossing: "dollar funding ✕ stablecoin supply", date: "1 Sep" }
-    ]
-  }
-];
+// Brief requires "at least 3 distinct wire dispatches" woven per essay
+const MIN_DISPATCHES_FOR_WEAVE = 3;
+
+interface DispatchRow {
+  id: string;
+  leadId: string;
+  title: string;
+  content: string;
+  threadA: string;
+  threadB: string;
+  sources: string[];
+  createdAt: string;
+}
+
+async function logStdout(cycleId: number, tag: string, level: string, glyph: string, message: string, cost?: number) {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const d = new Date();
+  const timeStr = `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}`;
+  await query(
+    `INSERT INTO agent_stdout (time_str, cycle_id, actor, glyph, message, level, cost_usd, tag, lead_id)
+     VALUES ($1, $2, 'analyst', $3, $4, $5, $6, $7, NULL);`,
+    [timeStr, cycleId, glyph, message, level, cost ?? null, tag]
+  );
+}
 
 export async function generateAutoWeave(): Promise<GenerateWeaveResult | null> {
   if (!isDbConfigured) {
@@ -74,72 +40,136 @@ export async function generateAutoWeave(): Promise<GenerateWeaveResult | null> {
   }
 
   try {
-    // 1. Check current highest issue number in DB
+    // 1. Pull dispatches from the last 7 days that haven't been woven into a Weave yet
+    const dispatchRows = await query<DispatchRow>(
+      `SELECT d.id, d.lead_id as "leadId", d.title, d.content, d.thread_a as "threadA",
+              d.thread_b as "threadB", d.sources, d.created_at as "createdAt"
+       FROM dispatches d
+       WHERE d.rejected_by IS NULL
+         AND d.created_at >= NOW() - INTERVAL '7 days'
+         AND NOT EXISTS (
+           SELECT 1 FROM weave_threads wt WHERE wt.dispatch_lead_id = d.lead_id
+         )
+       ORDER BY d.created_at ASC
+       LIMIT 8;`
+    );
+
+    if (!dispatchRows || dispatchRows.length < MIN_DISPATCHES_FOR_WEAVE) {
+      return {
+        success: false,
+        skipReason: `not enough unwoven dispatches (${dispatchRows?.length ?? 0}/${MIN_DISPATCHES_FOR_WEAVE})`,
+      };
+    }
+
+    // 2. Call the AI with the real dispatch data — never fabricate the synthesis
+    const dispatchContext = dispatchRows
+      .map((d) => `[${d.leadId}] ${d.title}\n  thread A: ${d.threadA} | thread B: ${d.threadB}\n  ${d.content}`)
+      .join("\n\n");
+
+    const openRouterApiKey = process.env.OPENROUTER_API_KEY;
+    const modelUsed = process.env.OPENROUTER_MODEL || "openrouter/free";
+    let aiOutput: any = null;
+
+    if (openRouterApiKey && openRouterApiKey.startsWith("sk-or-")) {
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${openRouterApiKey}`,
+          "HTTP-Referer": "https://nexus-iota-kohl.vercel.app",
+          "X-Title": "NEXUS Autonomous Desk",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: modelUsed,
+          messages: [
+            { role: "system", content: WEAVE_SYSTEM_PROMPT },
+            {
+              role: "user",
+              content: `Weave these ${dispatchRows.length} real dispatches into one longform essay:\n\n${dispatchContext}`,
+            },
+          ],
+          temperature: 0.3,
+          max_tokens: 3000,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const content = data.choices?.[0]?.message?.content || "";
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          aiOutput = JSON.parse(jsonMatch[0]);
+        }
+      } else {
+        const errText = await response.text();
+        console.error(`[Weave OpenRouter ${response.status}]`, errText);
+      }
+    }
+
+    // No fabricated fallback — a templated essay pretending to synthesize dispatches
+    // it never read would be exactly the kind of dressed-up fake the desk exists to avoid.
+    if (!aiOutput) {
+      console.error("[GenerateAutoWeave] AI synthesis failed — refusing to fabricate a fallback essay");
+      return { success: false, skipReason: "AI synthesis unavailable" };
+    }
+
+    // 3. Determine next issue number
     const rows = await query<{ max_issue: number }>(
       "SELECT COALESCE(MAX(issue_number), 4) as max_issue FROM weaves;"
     );
-    const currentMax = rows[0]?.max_issue || 4;
-    const nextIssue = currentMax + 1;
+    const nextIssue = (rows[0]?.max_issue || 4) + 1;
+    const slugBase = String(aiOutput.title || "weave")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "")
+      .slice(0, 60);
+    const uniqueSlug = `${slugBase}-issue-${nextIssue}`;
 
-    // Pick blueprint based on issue number rotation
-    const blueprint = WEAVE_BLUEPRINTS[(nextIssue - 5) % WEAVE_BLUEPRINTS.length] || WEAVE_BLUEPRINTS[0];
-    const uniqueSlug = `${blueprint.slug}-issue-${nextIssue}`;
+    const threadsSummary = `${dispatchRows.length} threads woven · ${dispatchRows.reduce((sum, d) => sum + (d.sources?.length || 0), 0)} sources`;
 
-    // 2. Insert new Weave into DB
+    // 4. Insert the Weave
     await query(
       `INSERT INTO weaves (issue_number, slug, title, dek, content, reading_minutes, threads_summary, tags, status, cost_usd)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'published', 0.2500)
-       ON CONFLICT (slug) DO UPDATE SET
-         title = EXCLUDED.title,
-         content = EXCLUDED.content,
-         published_at = NOW();`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'published', 0);`,
       [
         nextIssue,
         uniqueSlug,
-        `[Issue ${String(nextIssue).padStart(3, "0")}] ${blueprint.title}`,
-        blueprint.dek,
-        blueprint.content,
-        blueprint.readingMinutes,
-        blueprint.threadsSummary,
-        blueprint.tags,
+        `[Issue ${String(nextIssue).padStart(3, "0")}] ${aiOutput.title}`,
+        aiOutput.dek,
+        Array.isArray(aiOutput.content) ? aiOutput.content : [aiOutput.content],
+        aiOutput.readingMinutes || 6,
+        threadsSummary,
+        aiOutput.tags || ["macro", "crypto"],
       ]
     );
 
-    // 3. Insert Weave Threads Junction
-    for (const thread of blueprint.threads) {
+    // 5. Link the real source dispatches for traceability
+    for (const d of dispatchRows) {
+      const dateStr = new Date(d.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
       await query(
         `INSERT INTO weave_threads (weave_slug, dispatch_lead_id, crossing_title, dispatch_date)
          VALUES ($1, $2, $3, $4)
          ON CONFLICT DO NOTHING;`,
-        [uniqueSlug, thread.leadId, thread.crossing, thread.date]
+        [uniqueSlug, d.leadId, `${d.threadA} ✕ ${d.threadB}`, dateStr]
       );
     }
 
-    // 4. Log into agent_stdout
-    const pad = (n: number) => String(n).padStart(2, "0");
-    const d = new Date();
-    const timeStr = `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}`;
-
-    await query(
-      `INSERT INTO agent_stdout (time_str, cycle_id, actor, glyph, message, level, cost_usd, tag, lead_id)
-       VALUES ($1, 48, 'analyst', '✎', $2, 'dim', NULL, 'thought', NULL);`,
-      [timeStr, `synthesizing WEAVE ${String(nextIssue).padStart(3, "0")}… 1,240 words`]
+    // 6. Log to agent_stdout
+    const cycleRows = await query<{ max_cycle: number }>(
+      "SELECT COALESCE(MAX(cycle_id), 0) as max_cycle FROM agent_stdout;"
     );
-
-    await query(
-      `INSERT INTO agent_stdout (time_str, cycle_id, actor, glyph, message, level, cost_usd, tag, lead_id)
-       VALUES ($1, 48, 'analyst', '✓', $2, 'hit', 0.2500, 'filed', NULL);`,
-      [timeStr, `published WEAVE ${String(nextIssue).padStart(3, "0")} "${blueprint.title.slice(0, 42)}…"`]
-    );
+    const cycleId = (cycleRows[0]?.max_cycle || 0) + 1;
+    await logStdout(cycleId, "thought", "dim", "✎", `synthesizing WEAVE ${String(nextIssue).padStart(3, "0")}… ${dispatchRows.length} dispatches woven`);
+    await logStdout(cycleId, "filed", "hit", "✓", `published WEAVE ${String(nextIssue).padStart(3, "0")} "${aiOutput.title?.slice(0, 42)}…"`);
 
     return {
       success: true,
       issueNumber: nextIssue,
       slug: uniqueSlug,
-      title: blueprint.title,
+      title: aiOutput.title,
     };
   } catch (error) {
     console.error("[GenerateAutoWeave Error]", error);
-    return null;
+    return { success: false, skipReason: "internal error" };
   }
 }

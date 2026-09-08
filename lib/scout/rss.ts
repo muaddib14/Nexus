@@ -25,7 +25,7 @@ export const RSS_FEEDS = [
   {
     name: "CNBC Finance",
     category: "macro" as const,
-    url: "https://search.cnbc.com/rs/search/view.html?partnerId=2000&keywords=markets&category=all&sort=date&format=rss",
+    url: "https://www.cnbc.com/id/100003114/device/rss/rss.html",
   },
   {
     name: "CoinDesk",
@@ -45,7 +45,18 @@ export async function fetchAllFeeds(): Promise<{ items: FeedItem[]; logEvents: A
 
   for (const feed of RSS_FEEDS) {
     try {
-      const parsed = await parser.parseURL(feed.url);
+      // Some feeds (notably CNBC) emit XML with unescaped "&" or other invalid
+      // entities, which crashes the strict XML parser with "Invalid character
+      // in entity name". Fetch raw text and sanitize known-bad entities before
+      // parsing instead of trusting parser.parseURL() to handle it.
+      const res = await fetch(feed.url, {
+        headers: { "User-Agent": "Mozilla/5.0 (compatible; NexusDeskBot/1.0; +https://nexus.desk)" },
+        signal: AbortSignal.timeout(8000),
+      });
+      const rawXml = await res.text();
+      const sanitizedXml = rawXml.replace(/&(?!amp;|lt;|gt;|quot;|apos;|#\d+;|#x[0-9a-fA-F]+;)/g, "&amp;");
+
+      const parsed = await parser.parseString(sanitizedXml);
       const feedItems = (parsed.items || []).slice(0, 15).map((item) => ({
         source: feed.name,
         category: feed.category,

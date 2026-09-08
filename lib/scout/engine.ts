@@ -161,6 +161,11 @@ export async function runScoutCycle(): Promise<CycleResult> {
     }
   }
 
+  // leadId is always assigned deterministically by cycleId — never trust the AI's own
+  // suggestion here. The free model tends to parrot the prompt's example value verbatim
+  // (e.g. always "#105"), which caused duplicate leadIds across unrelated dispatches.
+  aiOutput.leadId = `#${100 + cycleId}`;
+
   const costUsd = 0.0000;
 
   // 5. Write Decisions & Audit Log to Neon DB

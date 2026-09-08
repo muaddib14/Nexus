@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Terminal, BookOpen, Radio, Map } from "lucide-react";
+import { Terminal, BookOpen, Radio, Map, Coins } from "lucide-react";
 import { usePolling } from "@/lib/hooks/usePolling";
 
 // Vitals only change when the Scout cron fires (~every 30 min) — no point polling faster
@@ -12,7 +12,7 @@ interface MastheadProps {
   activeTab?: "wire" | "log";
   setActiveTab?: (tab: "wire" | "log") => void;
   isWeavePage?: boolean;
-  activeSection?: "weave" | "quarter";
+  activeSection?: "weave" | "quarter" | "stake";
 }
 
 interface Vitals {
@@ -134,6 +134,17 @@ export default function Masthead({ activeTab = "wire", setActiveTab, isWeavePage
             >
               <Map className="w-3 h-3" />
               The Quarter
+            </Link>
+            <Link
+              href="/stake"
+              className={`px-3 py-1 text-[11px] flex items-center gap-1.5 font-medium tracking-wider uppercase transition-all rounded ${
+                resolvedSection === "stake"
+                  ? "bg-[#CCFF00] text-[#100E0A] font-bold"
+                  : "text-[#9A9385] hover:text-[#E9E3D5]"
+              }`}
+            >
+              <Coins className="w-3 h-3" />
+              Stake
             </Link>
           </div>
 
