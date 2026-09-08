@@ -85,6 +85,12 @@ export default function StakeDashboard() {
     query: { enabled: IS_STAKING_CONFIGURED },
   });
 
+  const { data: periodFinish } = useReadContract({
+    ...contractCall,
+    functionName: "periodFinish",
+    query: { enabled: IS_STAKING_CONFIGURED },
+  });
+
   // Refresh reads once a transaction confirms
   useEffect(() => {
     if (isTxConfirmed) {
@@ -259,7 +265,22 @@ export default function StakeDashboard() {
         )}
       </div>
 
-      <div className="px-6 pb-6 pt-2 border-t border-dashed border-[rgba(233,227,213,0.14)] text-[10.5px] text-[#6E7C82] leading-relaxed">
+      <div className="px-6 pb-4 pt-2 border-t border-dashed border-[rgba(233,227,213,0.14)] text-[10.5px] text-[#6E7C82] flex flex-wrap gap-x-6 gap-y-1">
+        <span>
+          Reward period ends:{" "}
+          <b className="text-[#E9E3D5]">
+            {periodFinish && (periodFinish as bigint) > BigInt(0)
+              ? new Date(Number(periodFinish as bigint) * 1000).toLocaleDateString("en-US", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                })
+              : "not active"}
+          </b>
+        </span>
+      </div>
+
+      <div className="px-6 pb-6 text-[10.5px] text-[#6E7C82] leading-relaxed">
         Estimated monthly yield: 0.5%–1.0%. Rewards are variable and depend on the configured staking reward
         program. Past or target rewards do not guarantee future returns.
       </div>
