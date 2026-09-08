@@ -39,8 +39,18 @@ export default function StakeDashboard() {
 
   const isWrongChain = isConnected && chainId !== TARGET_CHAIN.id;
 
-  const { writeContract, data: txHash, isPending: isWritePending, reset: resetWrite } = useWriteContract();
-  const { isLoading: isTxConfirming, isSuccess: isTxConfirmed } = useWaitForTransactionReceipt({ hash: txHash });
+  const {
+    writeContract,
+    data: txHash,
+    isPending: isWritePending,
+    reset: resetWrite,
+    error: writeError,
+  } = useWriteContract();
+  const {
+    isLoading: isTxConfirming,
+    isSuccess: isTxConfirmed,
+    error: receiptError,
+  } = useWaitForTransactionReceipt({ hash: txHash });
 
   const contractCall = { address: STAKING_CONTRACT_ADDRESS, abi: SIMPLE_STAKING_ABI } as const;
   const tokenCall = { address: PROJECT_TOKEN_ADDRESS, abi: ERC20_ABI } as const;
@@ -261,6 +271,16 @@ export default function StakeDashboard() {
         {txHash && (
           <div className="text-[10px] text-[#6E7C82] pt-2">
             {isTxConfirming ? "Confirming…" : isTxConfirmed ? "Confirmed" : "Submitted"} — tx {txHash.slice(0, 10)}…
+          </div>
+        )}
+
+        {(writeError || receiptError) && (
+          <div className="text-[11px] text-[#D64A3A] pt-2 break-words whitespace-pre-wrap">
+            {(() => {
+              const err = writeError || receiptError;
+              const shortMessage = (err as { shortMessage?: string })?.shortMessage;
+              return shortMessage || err?.message.slice(0, 400) || "Transaction failed";
+            })()}
           </div>
         )}
       </div>
