@@ -101,7 +101,8 @@ export default function StakeDashboard() {
     query: { enabled: IS_STAKING_CONFIGURED },
   });
 
-  // Refresh reads once a transaction confirms
+  // Refresh reads once a transaction confirms. The proof link (txHash) is
+  // deliberately kept visible — only a new action (see handlers below) clears it.
   useEffect(() => {
     if (isTxConfirmed) {
       refetchBalance();
@@ -109,7 +110,6 @@ export default function StakeDashboard() {
       refetchStaked();
       refetchEarned();
       setAmount("");
-      resetWrite();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isTxConfirmed]);
@@ -125,15 +125,19 @@ export default function StakeDashboard() {
   const needsApproval = allowance !== undefined && amountWei > BigInt(0) && (allowance as bigint) < amountWei;
 
   const handleApprove = () => {
+    resetWrite();
     writeContract({ ...tokenCall, functionName: "approve", args: [STAKING_CONTRACT_ADDRESS, amountWei] });
   };
   const handleStake = () => {
+    resetWrite();
     writeContract({ ...contractCall, functionName: "stake", args: [amountWei] });
   };
   const handleWithdraw = () => {
+    resetWrite();
     writeContract({ ...contractCall, functionName: "withdraw", args: [amountWei] });
   };
   const handleClaim = () => {
+    resetWrite();
     writeContract({ ...contractCall, functionName: "claimReward" });
   };
 
@@ -269,8 +273,16 @@ export default function StakeDashboard() {
         </div>
 
         {txHash && (
-          <div className="text-[10px] text-[#6E7C82] pt-2">
-            {isTxConfirming ? "Confirming…" : isTxConfirmed ? "Confirmed" : "Submitted"} — tx {txHash.slice(0, 10)}…
+          <div className="text-[10px] text-[#6E7C82] pt-2 flex items-center gap-2">
+            <span>{isTxConfirming ? "Confirming…" : isTxConfirmed ? "Confirmed" : "Submitted"}</span>
+            <a
+              href={`${TARGET_CHAIN.blockExplorers.default.url}/tx/${txHash}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#CCFF00] hover:underline"
+            >
+              View proof on explorer → {txHash.slice(0, 10)}…
+            </a>
           </div>
         )}
 
